@@ -1,0 +1,22 @@
+{
+  "name": "clm",
+  "version": "1.0.0",
+  "description": "Cloud Log Miner",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "silvia",
+  "license": "ISC",
+  "dependencies": {
+    "angular2": "^2.0.0-beta.7",
+    "es6-promise": "^3.1.2",
+    "es6-shim": "^0.33.13",
+    "reflect-metadata": "^0.1.2",
+    "rxjs": "^5.0.0-beta.2",
+    "systemjs": "^0.19.23",
+    "zone.js": "^0.5.15",
+    "ag-grid": "3.3.x",
+    "ag-grid-ng2": "3.3.x"
+  }
+}
