@@ -37,6 +37,10 @@ var AppComponent = (function () {
             });
         });
     };
+    AppComponent.prototype.poni = function () {
+        console.log("poni");
+        this.rowData = this.omg;
+    };
     AppComponent.prototype.createColumnDefs = function () {
         this.columnDefs = [
             {

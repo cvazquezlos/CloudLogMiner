@@ -45,6 +45,11 @@ export class AppComponent {
             });
     }
 
+    poni(){
+        console.log("poni");
+        this.rowData=this.omg;
+    }
+
 
     private createColumnDefs() {
         this.columnDefs = [
