@@ -19,6 +19,7 @@ export class AppComponent {
     private rowData: any[];
     private columnDefs: any[];
     private rowCount: string;
+    private omg: any[];
 
     constructor(private _elasticService: ElasticService) {
         this.gridOptions = <GridOptions>{};
@@ -30,29 +31,29 @@ export class AppComponent {
     list() {
         this._elasticService.listIndices()
             .subscribe(list=> {
-                //list.forEach(index=>{
+                list.forEach(index=>{
                     this._elasticService.listAllLogs(list[0])
                         .subscribe(data=>{
                             var todos:Array<any>=[];
                             todos=todos.concat(data);           //concatena al array
                             console.log(todos);
-                            this.rowData=todos;
+                            this.omg=todos;
                             //console.log(poni.message);
                         })
-                //});
+                });
 
             });
     }
 
 
     private createColumnDefs() {
-        this.columnDefs = [/*
+        this.columnDefs = [
             {
                 headerName: '@timestamp'
             },
             {
                 headerName: '@version'
-            },*/
+            },
             {
                 headerName: 'HOSTNAME'
             },
@@ -95,6 +96,7 @@ export class AppComponent {
     private onModelUpdated() {
         console.log('onModelUpdated');
         this.calculateRowCount();
+        this.rowData=this.omg;
     }
 
     private onReady() {

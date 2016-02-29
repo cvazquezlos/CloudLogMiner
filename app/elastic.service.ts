@@ -30,7 +30,6 @@ export class ElasticService {
                         result.push(log._source);
                     })
                 }
-                console.log(result);
                 return result;
             })
     }

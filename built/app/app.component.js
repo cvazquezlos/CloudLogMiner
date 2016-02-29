@@ -25,20 +25,26 @@ var AppComponent = (function () {
         var _this = this;
         this._elasticService.listIndices()
             .subscribe(function (list) {
-            //list.forEach(index=>{
-            _this._elasticService.listAllLogs(list[0])
-                .subscribe(function (data) {
-                var todos = [];
-                todos = todos.concat(data); //concatena al array
-                console.log(todos);
-                _this.rowData = todos;
-                //console.log(poni.message);
+            list.forEach(function (index) {
+                _this._elasticService.listAllLogs(list[0])
+                    .subscribe(function (data) {
+                    var todos = [];
+                    todos = todos.concat(data); //concatena al array
+                    console.log(todos);
+                    _this.omg = todos;
+                    //console.log(poni.message);
+                });
             });
-            //});
         });
     };
     AppComponent.prototype.createColumnDefs = function () {
         this.columnDefs = [
+            {
+                headerName: '@timestamp'
+            },
+            {
+                headerName: '@version'
+            },
             {
                 headerName: 'HOSTNAME'
             },
@@ -79,6 +85,7 @@ var AppComponent = (function () {
     AppComponent.prototype.onModelUpdated = function () {
         console.log('onModelUpdated');
         this.calculateRowCount();
+        this.rowData = this.omg;
     };
     AppComponent.prototype.onReady = function () {
         console.log('onReady');
