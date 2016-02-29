@@ -17,51 +17,56 @@ var AppComponent = (function () {
     function AppComponent(_elasticService) {
         this._elasticService = _elasticService;
         this.gridOptions = {};
-        this.rowData = [{
-                timestamp: 12345,
-                message: "uhu",
-                level: "error",
-                path: "hhh" }];
         this.list();
         this.createColumnDefs();
         this.showGrid = true;
     }
-    /* rowData:any[];
-     gridOptions = {
- 
-         columnDefs: this.columnDefs,
- 
-         enableFilter: true,
- 
-         enableSorting: true,
- 
-         showToolPanel: true
- 
-     };
-     columnDefs =
-         function() {
-             let poni=[]
-             this.rowData.forEach(log=>{
-                 poni.push(Object.getOwnPropertyNames(log))
-             });
-             console.log(poni);
-             return poni;
-         };*/
     AppComponent.prototype.list = function () {
         var _this = this;
         this._elasticService.listIndices()
             .subscribe(function (list) {
-            var todos = [];
-            list.forEach(function (index) {
-                _this._elasticService.listAllLogs(index)
-                    .subscribe(function (data) {
-                    todos = todos.concat(data);
-                    console.log(todos);
-                    _this.rowData = todos;
-                    _this.gridOptions.api.setRowData(todos);
-                });
+            //list.forEach(index=>{
+            _this._elasticService.listAllLogs(list[0])
+                .subscribe(function (data) {
+                var todos = [];
+                todos = todos.concat(data); //concatena al array
+                console.log(todos);
+                _this.rowData = todos;
+                //console.log(poni.message);
             });
+            //});
         });
+    };
+    AppComponent.prototype.createColumnDefs = function () {
+        this.columnDefs = [
+            {
+                headerName: 'HOSTNAME'
+            },
+            {
+                headerName: 'host'
+            },
+            {
+                headerName: 'level'
+            },
+            {
+                headerName: 'level_value'
+            },
+            {
+                headerName: 'logger_name'
+            },
+            {
+                headerName: 'message'
+            },
+            {
+                headerName: 'path'
+            },
+            {
+                headerName: 'thread_name'
+            },
+            {
+                headerName: 'type'
+            }
+        ];
     };
     AppComponent.prototype.calculateRowCount = function () {
         if (this.gridOptions.api && this.rowData) {
@@ -79,30 +84,64 @@ var AppComponent = (function () {
         console.log('onReady');
         this.calculateRowCount();
     };
-    AppComponent.prototype.createColumnDefs = function () {
-        this.columnDefs = [
-            {
-                headerName: '@timestamp'
-            },
-            {
-                headerName: 'message'
-            },
-            {
-                headerName: 'logger_name'
-            },
-            {
-                headerName: 'level'
-            },
-            {
-                headerName: 'path'
-            }
-        ];
+    AppComponent.prototype.onCellClicked = function ($event) {
+        console.log('onCellClicked: ' + $event.rowIndex + ' ' + $event.colDef.field);
+    };
+    AppComponent.prototype.onCellValueChanged = function ($event) {
+        console.log('onCellValueChanged: ' + $event.oldValue + ' to ' + $event.newValue);
+    };
+    AppComponent.prototype.onCellDoubleClicked = function ($event) {
+        console.log('onCellDoubleClicked: ' + $event.rowIndex + ' ' + $event.colDef.field);
+    };
+    AppComponent.prototype.onCellContextMenu = function ($event) {
+        console.log('onCellContextMenu: ' + $event.rowIndex + ' ' + $event.colDef.field);
+    };
+    AppComponent.prototype.onCellFocused = function ($event) {
+        console.log('onCellFocused: (' + $event.rowIndex + ',' + $event.colIndex + ')');
+    };
+    AppComponent.prototype.onRowSelected = function ($event) {
+        console.log('onRowSelected: ' + $event.node.data.name);
+    };
+    AppComponent.prototype.onSelectionChanged = function () {
+        console.log('selectionChanged');
+    };
+    AppComponent.prototype.onBeforeFilterChanged = function () {
+        console.log('beforeFilterChanged');
+    };
+    AppComponent.prototype.onAfterFilterChanged = function () {
+        console.log('afterFilterChanged');
+    };
+    AppComponent.prototype.onFilterModified = function () {
+        console.log('onFilterModified');
+    };
+    AppComponent.prototype.onBeforeSortChanged = function () {
+        console.log('onBeforeSortChanged');
+    };
+    AppComponent.prototype.onAfterSortChanged = function () {
+        console.log('onAfterSortChanged');
+    };
+    AppComponent.prototype.onVirtualRowRemoved = function ($event) {
+        // because this event gets fired LOTS of times, we don't print it to the
+        // console. if you want to see it, just uncomment out this line
+        // console.log('onVirtualRowRemoved: ' + $event.rowIndex);
+    };
+    AppComponent.prototype.onRowClicked = function ($event) {
+        console.log('onRowClicked: ' + $event.node.data.name);
+    };
+    AppComponent.prototype.onQuickFilterChanged = function ($event) {
+        this.gridOptions.api.setQuickFilter($event.target.value);
+    };
+    // here we use one generic event to handle all the column type events.
+    // the method just prints the event name
+    AppComponent.prototype.onColumnEvent = function ($event) {
+        console.log('onColumnEvent: ' + $event);
     };
     AppComponent = __decorate([
         core_1.Component({
             selector: 'my-app',
             templateUrl: 'templates/appcomponent.html',
-            directives: [main_1.AgGridNg2]
+            directives: [main_1.AgGridNg2],
+            styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
         }), 
         __metadata('design:paramtypes', [elastic_service_1.ElasticService])
     ], AppComponent);
