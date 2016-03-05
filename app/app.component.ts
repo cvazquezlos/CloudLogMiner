@@ -5,10 +5,13 @@ import {Component} from 'angular2/core';
 import {ElasticService} from './elastic.service';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
+import {Response} from 'angular2/http';
+import {HTTP_PROVIDERS} from 'angular2/http';
 
 @Component({
     selector: 'my-app',
     templateUrl: 'templates/appcomponent.html',
+    providers: HTTP_PROVIDERS,
     directives: [AgGridNg2],
     styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
 })
@@ -16,72 +19,79 @@ import {GridOptions} from 'ag-grid/main';
 export class AppComponent {
     private gridOptions: GridOptions;
     private showGrid: boolean;
-    private rowData: any[];
+    private rowData: any[]=[];
     private columnDefs: any[];
     private rowCount: string;
     private omg: any[];
 
     constructor(private _elasticService: ElasticService) {
         this.gridOptions = <GridOptions>{};
-        this.list();
+        //this.list();
         this.createColumnDefs();
         this.showGrid = true;
     }
 
     list() {
-        this._elasticService.listIndices()
+        /*this._elasticService.listIndices()
             .subscribe(list=> {
-                list.forEach(index=>{
-                    this._elasticService.listAllLogs(list[0])
-                        .subscribe(data=>{
-                            var todos:Array<any>=[];
+                list.forEach(index=>{*/
+                    this._elasticService.listAllLogs("logstash-2016.02.25")   //list[0])
+                        .subscribe(data => {
+                            this.gridOptions.api.setRowData(data);
+                            /*let todos:Array<any>=[];
+                            console.log(data);
                             todos=todos.concat(data);           //concatena al array
                             console.log(todos);
-                            this.omg=todos;
-                            //console.log(poni.message);
-                        })
-                });
+                            //this.rowData=JSON.stringify(todos);
+                            for (let logEntry of data) {
+                                    this.rowData.push(logEntry);
+                                console.log(this.rowData);
+                                //}
+                            };*/
+                        },
+                        err=>console.log(err),
+                        () => {console.log('Http Complete');
+                                //this.onModelUpdated();
+                                }
+                        );
+                //});
 
-            });
-    }
-
-    poni(){
-        console.log("poni");
-        this.rowData=this.omg;
+            //});
     }
 
 
     private createColumnDefs() {
         this.columnDefs = [
             {
-                headerName: '@timestamp'
+                headerName: 'Time', width: 200, checkboxSelection: false, suppressSorting: true, field: "@timestamp",
+                suppressMenu: true, pinned: false
             },
             {
-                headerName: '@version'
+                headerName: 'Version', field:"@version"
             },
             {
-                headerName: 'HOSTNAME'
+                headerName: 'HOSTNAME', field:"HOSTNAME"
             },
             {
-                headerName: 'host'
+                headerName: 'host', field:"host"
             },
             {
-                headerName: 'level'
+                headerName: 'level', field:"level"
             },
             {
-                headerName: 'level_value'
+                headerName: 'level_value', field:"level_value"
             },
             {
-                headerName: 'logger_name'
+                headerName: 'logger_name', field:"logger_name"
             },
             {
-                headerName: 'message'
+                headerName: 'message', field:"message"
             },
             {
-                headerName: 'path'
+                headerName: 'path', field:"path"
             },
             {
-                headerName: 'thread_name'
+                headerName: 'thread_name', field:"thread_name"
             },
             {
                 headerName: 'type'
@@ -101,7 +111,9 @@ export class AppComponent {
     private onModelUpdated() {
         console.log('onModelUpdated');
         this.calculateRowCount();
-        this.rowData=this.omg;
+        this.gridOptions.api.ensureIndexVisible(this.gridOptions.rowData.length - 1);
+        console.log("lastrow:"+this.gridOptions.api.getModel().getVirtualRowCount());
+        console.log("ROW DATA:"+this.rowData.length);
     }
 
     private onReady() {

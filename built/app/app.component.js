@@ -13,65 +13,73 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('angular2/core');
 var elastic_service_1 = require('./elastic.service');
 var main_1 = require('ag-grid-ng2/main');
+var http_1 = require('angular2/http');
 var AppComponent = (function () {
     function AppComponent(_elasticService) {
         this._elasticService = _elasticService;
+        this.rowData = [];
         this.gridOptions = {};
-        this.list();
+        //this.list();
         this.createColumnDefs();
         this.showGrid = true;
     }
     AppComponent.prototype.list = function () {
         var _this = this;
-        this._elasticService.listIndices()
-            .subscribe(function (list) {
-            list.forEach(function (index) {
-                _this._elasticService.listAllLogs(list[0])
-                    .subscribe(function (data) {
-                    var todos = [];
-                    todos = todos.concat(data); //concatena al array
-                    console.log(todos);
-                    _this.omg = todos;
-                    //console.log(poni.message);
-                });
-            });
+        /*this._elasticService.listIndices()
+            .subscribe(list=> {
+                list.forEach(index=>{*/
+        this._elasticService.listAllLogs("logstash-2016.02.25") //list[0])
+            .subscribe(function (data) {
+            _this.gridOptions.api.setRowData(data);
+            /*let todos:Array<any>=[];
+            console.log(data);
+            todos=todos.concat(data);           //concatena al array
+            console.log(todos);
+            //this.rowData=JSON.stringify(todos);
+            for (let logEntry of data) {
+                    this.rowData.push(logEntry);
+                console.log(this.rowData);
+                //}
+            };*/
+        }, function (err) { return console.log(err); }, function () {
+            console.log('Http Complete');
+            //this.onModelUpdated();
         });
-    };
-    AppComponent.prototype.poni = function () {
-        console.log("poni");
-        this.rowData = this.omg;
+        //});
+        //});
     };
     AppComponent.prototype.createColumnDefs = function () {
         this.columnDefs = [
             {
-                headerName: '@timestamp'
+                headerName: 'Time', width: 200, checkboxSelection: false, suppressSorting: true, field: "@timestamp",
+                suppressMenu: true, pinned: false
             },
             {
-                headerName: '@version'
+                headerName: 'Version', field: "@version"
             },
             {
-                headerName: 'HOSTNAME'
+                headerName: 'HOSTNAME', field: "HOSTNAME"
             },
             {
-                headerName: 'host'
+                headerName: 'host', field: "host"
             },
             {
-                headerName: 'level'
+                headerName: 'level', field: "level"
             },
             {
-                headerName: 'level_value'
+                headerName: 'level_value', field: "level_value"
             },
             {
-                headerName: 'logger_name'
+                headerName: 'logger_name', field: "logger_name"
             },
             {
-                headerName: 'message'
+                headerName: 'message', field: "message"
             },
             {
-                headerName: 'path'
+                headerName: 'path', field: "path"
             },
             {
-                headerName: 'thread_name'
+                headerName: 'thread_name', field: "thread_name"
             },
             {
                 headerName: 'type'
@@ -89,7 +97,9 @@ var AppComponent = (function () {
     AppComponent.prototype.onModelUpdated = function () {
         console.log('onModelUpdated');
         this.calculateRowCount();
-        this.rowData = this.omg;
+        this.gridOptions.api.ensureIndexVisible(this.gridOptions.rowData.length - 1);
+        console.log("lastrow:" + this.gridOptions.api.getModel().getVirtualRowCount());
+        console.log("ROW DATA:" + this.rowData.length);
     };
     AppComponent.prototype.onReady = function () {
         console.log('onReady');
@@ -151,6 +161,7 @@ var AppComponent = (function () {
         core_1.Component({
             selector: 'my-app',
             templateUrl: 'templates/appcomponent.html',
+            providers: http_1.HTTP_PROVIDERS,
             directives: [main_1.AgGridNg2],
             styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
         }), 
