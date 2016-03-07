@@ -7,7 +7,8 @@
         "module": "commonjs",
         "noImplicitAny": false,
         "outDir": "built",
-        "rootDir": "."
+        "rootDir": ".",
+        "removeComments": true
     },
     "exclude": [
         "node_modules"

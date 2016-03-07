@@ -9,20 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('angular2/core');
 var main_1 = require('ag-grid-ng2/main');
-/*
-import ProficiencyFilter from './proficiencyFilter';
-import SkillFilter from './skillFilter';*/
 var http_1 = require('angular2/http');
-/*
-const ES_URL = 'http://127.0.0.1:9200/';
-const INDEX = "<logstash-*>";
-*/
-var ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-var INDEX = "<kurento-*>";
+var ES_URL = 'http://127.0.0.1:9200/';
+var INDEX = "<logstash-*>";
 var AppComponent = (function () {
     function AppComponent(http) {
         this.http = http;
-        // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = {};
         this.rowData = [];
         this.createRowData();
@@ -210,9 +202,6 @@ var AppComponent = (function () {
         console.log('onAfterSortChanged');
     };
     AppComponent.prototype.onVirtualRowRemoved = function ($event) {
-        // because this event gets fired LOTS of times, we don't print it to the
-        // console. if you want to see it, just uncomment out this line
-        // console.log('onVirtualRowRemoved: ' + $event.rowIndex);
     };
     AppComponent.prototype.onRowClicked = function ($event) {
         console.log('onRowClicked: ' + $event.node.data.name);
@@ -220,16 +209,15 @@ var AppComponent = (function () {
     AppComponent.prototype.onQuickFilterChanged = function ($event) {
         this.gridOptions.api.setQuickFilter($event.target.value);
     };
-    // here we use one generic event to handle all the column type events.
-    // the method just prints the event name
     AppComponent.prototype.onColumnEvent = function ($event) {
         console.log('onColumnEvent: ' + $event);
     };
     AppComponent = __decorate([
         core_1.Component({
             selector: 'my-app',
-            templateUrl: 'components/component.component.html',
+            templateUrl: 'component/appcomponent.html',
             directives: [main_1.AgGridNg2],
+            providers: http_1.HTTP_PROVIDERS,
             styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
         }), 
         __metadata('design:paramtypes', [http_1.Http])
@@ -247,4 +235,4 @@ function skillsCellRenderer(params) {
     });
     return skills.join(' ');
 }
-//# sourceMappingURL=component.component.js.map
+//# sourceMappingURL=app.component.js.map

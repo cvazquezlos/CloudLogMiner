@@ -1,8 +1,8 @@
 /**
  * Created by silvia on 26/2/16.
  */
-import {Http} from 'angular2/http';
-import 'rxjs/add/operator/map';
+import {Http} from '../node_modules/angular2/http.d';
+import '../node_modules/rxjs/add/operator/map.d';
 import {Injectable} from "angular2/core";
 
 @Injectable()
