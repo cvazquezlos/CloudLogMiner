@@ -120,7 +120,7 @@ export class AppComponent {
 
                     let logValue = { type, time, message, level, thread, logger, host };
                     this.rowData.push(logValue);
-                    this.gridOptions.api.setRowData(this.rowData);
+                    this.rowData = this.rowData.slice();
                 }
             });
     }
@@ -247,7 +247,7 @@ export class AppComponent {
     }
 
     private onRowClicked($event) {
-        console.log('onRowClicked: ' + $event.node.data.name);
+        console.log('onRowClicked: ' + $event.node.data.time);
     }
 
     private onQuickFilterChanged($event) {
@@ -260,15 +260,4 @@ export class AppComponent {
         console.log('onColumnEvent: ' + $event);
     }
 
-}
-
-function skillsCellRenderer(params) {
-    let data = params.data;
-    let skills = [];
-    RefData.IT_SKILLS.forEach(function (skill) {
-        if (data && data.skills && data.skills[skill]) {
-            skills.push('<img src="/images/skills/' + skill + '.png" width="16px" title="' + skill + '" />');
-        }
-    });
-    return skills.join(' ');
 }

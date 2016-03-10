@@ -98,7 +98,7 @@ var AppComponent = (function () {
                 var host = logEntry._source.host;
                 var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
                 _this.rowData.push(logValue);
-                _this.gridOptions.api.setRowData(_this.rowData);
+                _this.rowData = _this.rowData.slice();
             }
         });
     };
@@ -204,7 +204,7 @@ var AppComponent = (function () {
     AppComponent.prototype.onVirtualRowRemoved = function ($event) {
     };
     AppComponent.prototype.onRowClicked = function ($event) {
-        console.log('onRowClicked: ' + $event.node.data.name);
+        console.log('onRowClicked: ' + $event.node.data.time);
     };
     AppComponent.prototype.onQuickFilterChanged = function ($event) {
         this.gridOptions.api.setQuickFilter($event.target.value);
@@ -225,14 +225,4 @@ var AppComponent = (function () {
     return AppComponent;
 })();
 exports.AppComponent = AppComponent;
-function skillsCellRenderer(params) {
-    var data = params.data;
-    var skills = [];
-    RefData.IT_SKILLS.forEach(function (skill) {
-        if (data && data.skills && data.skills[skill]) {
-            skills.push('<img src="/images/skills/' + skill + '.png" width="16px" title="' + skill + '" />');
-        }
-    });
-    return skills.join(' ');
-}
 //# sourceMappingURL=app.component.js.map
