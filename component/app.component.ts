@@ -1,8 +1,8 @@
 import {Component} from 'angular2/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
-
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
+import {ElasticService} from "../service/elastic.service";
 
 const ES_URL = 'http://127.0.0.1:9200/';
 const INDEX = "<logstash-*>";
@@ -14,7 +14,7 @@ const INDEX = "<kurento-*>";*/
     selector: 'my-app',
     templateUrl: 'component/appcomponent.html',
     directives: [AgGridNg2],
-    providers: HTTP_PROVIDERS,
+    //providers: HTTP_PROVIDERS,
     styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
 })
 export class AppComponent {
@@ -25,7 +25,7 @@ export class AppComponent {
     private columnDefs: any[];
     private rowCount: string;
 
-    constructor(private http: Http) {
+    constructor(/*private http: Http,*/ private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{};
         this.rowData=[];
@@ -36,93 +36,24 @@ export class AppComponent {
 
     private createRowData() {
 
-        let url =ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
-          let body= { 
-              sort: [ 
-                  { "@timestamp": "desc" } 
-              ],
-              query: {
-                  "filtered": {
-                      "filter": {
-                          "bool": {
-                              "must": [
-                                  {
-                                      "range": {
-                                          "@timestamp": {
-                                              "gte": "now-20d",
-                                              "lte": "now"
-                                          }
-                                      }
-                                  },
-                                  {   "bool":
-                                      {   "should": [
-                                          {
-                                              "exists" : { "field" : "thread_name" }
-                                          },
-                                          {
-                                              "exists" : { "field" : "threadid" }
-                                          }
-                                      ]
-                                      }
-                                  },
-                                  {   "bool":
-                                      {   "should": [
-                                          {
-                                              "exists" : { "field" : "logger_name" }
-                                          },
-                                          {
-                                              "exists" : { "field" : "loggername" }
-                                          }
-                                      ]
-                                      }
-                                  },
-                                  {   "bool":
-                                      {   "should": [
-                                          {
-                                              "exists" : { "field" : "loglevel" }
-                                          },
-                                          {
-                                              "exists" : { "field" : "level" }
-                                          }
-                                      ]
-                                      }
-                                  }
-                              ]
+        this._elasticService.listAllLogs().subscribe((res: Response) => {
+            let data = res.json();
+            for (let logEntry of data.hits.hits) {
+                let fullmessage: string = logEntry._source.message.replace('\n', '');
 
-                          }
-                      }
-                  }
-              }, 
-              size: "50", 
-              //The following are the fields that are requested from each log. Should be consistent with the definition of logValue
-              //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
-          };
+                let type = logEntry._type;
+                let time = logEntry._source['@timestamp'];
+                let message = logEntry._source.message;
+                let level = logEntry._source.level || logEntry._source.loglevel;
+                let thread = logEntry._source.thread_name || logEntry._source.threadid;
+                let logger = logEntry._source.logger_name || logEntry._source.loggername;
+                let host = logEntry._source.host;
 
-         let requestoptions = new RequestOptions({ 
-             method: RequestMethod.Post, 
-             url, 
-             body: JSON.stringify(body) 
-         });
-
-        this.http.request(new Request(requestoptions)) 
-            .subscribe((res: Response) => {
-                let data = res.json();
-                for (let logEntry of data.hits.hits) {
-                    let fullmessage: string = logEntry._source.message.replace('\n', '');
-
-                    let type = logEntry._type;
-                    let time = logEntry._source['@timestamp'];
-                    let message = logEntry._source.message;
-                    let level = logEntry._source.level || logEntry._source.loglevel;
-                    let thread = logEntry._source.thread_name || logEntry._source.threadid;
-                    let logger = logEntry._source.logger_name || logEntry._source.loggername;
-                    let host = logEntry._source.host;
-
-                    let logValue = { type, time, message, level, thread, logger, host };
-                    this.rowData.push(logValue);
-                    this.rowData = this.rowData.slice();
-                }
-            });
+                let logValue = { type, time, message, level, thread, logger, host };
+                this.rowData.push(logValue);
+                this.rowData = this.rowData.slice();
+            }
+        });
     }
 
     private createColumnDefs() {
@@ -140,7 +71,7 @@ export class AppComponent {
         this.columnDefs = [
             {
                 headerName: '#', width: 30, checkboxSelection: false, suppressSorting: true,
-                suppressMenu: true, pinned: true
+                suppressMenu: true, pinned: true, editable: true
             },
             {
                 headerName: 'Time', width: 200, checkboxSelection: false, suppressSorting: true, field: "time",

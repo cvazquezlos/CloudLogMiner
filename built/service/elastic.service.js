@@ -7,9 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var http_d_1 = require('../node_modules/angular2/http.d');
-require('../node_modules/rxjs/add/operator/map.d');
 var core_1 = require("angular2/core");
+var http_1 = require('angular2/http');
+var ES_URL = 'http://127.0.0.1:9200/';
+var INDEX = "<logstash-*>";
 var ElasticService = (function () {
     function ElasticService(_http) {
         this._http = _http;
@@ -22,23 +23,57 @@ var ElasticService = (function () {
         });
     };
     ElasticService.prototype.listAllLogs = function (index) {
-        return this._http.get("http://localhost:9200/" + index + "/_search?q=*&pretty")
-            .map(function (responseData) {
-            return responseData.json();
-        })
-            .map(function (answer) {
-            var result = [];
-            if (answer) {
-                answer.hits.hits.forEach(function (log) {
-                    result.push(log._source);
-                });
-            }
-            return result;
+        var url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
+        var body = {
+            sort: [
+                { "@timestamp": "desc" }
+            ],
+            query: {
+                "filtered": {
+                    "filter": {
+                        "bool": {
+                            "must": [
+                                { "range": {
+                                        "@timestamp": {
+                                            "gte": "now-20d",
+                                            "lte": "now" }
+                                    }
+                                },
+                                { "bool": { "should": [
+                                            { "exists": { "field": "thread_name" } },
+                                            { "exists": { "field": "threadid" } }
+                                        ]
+                                    }
+                                },
+                                { "bool": { "should": [
+                                            { "exists": { "field": "logger_name" } },
+                                            { "exists": { "field": "loggername" } }
+                                        ]
+                                    }
+                                },
+                                { "bool": { "should": [
+                                            { "exists": { "field": "loglevel" } },
+                                            { "exists": { "field": "level" } }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            size: "50",
+        };
+        var requestoptions = new http_1.RequestOptions({
+            method: http_1.RequestMethod.Post,
+            url: url,
+            body: JSON.stringify(body)
         });
+        return this._http.request(new http_1.Request(requestoptions));
     };
     ElasticService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [http_d_1.Http])
+        __metadata('design:paramtypes', [http_1.Http])
     ], ElasticService);
     return ElasticService;
 })();

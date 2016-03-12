@@ -9,12 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('angular2/core');
 var main_1 = require('ag-grid-ng2/main');
-var http_1 = require('angular2/http');
+var elastic_service_1 = require("../service/elastic.service");
 var ES_URL = 'http://127.0.0.1:9200/';
 var INDEX = "<logstash-*>";
 var AppComponent = (function () {
-    function AppComponent(http) {
-        this.http = http;
+    function AppComponent(_elasticService) {
+        this._elasticService = _elasticService;
         this.gridOptions = {};
         this.rowData = [];
         this.createRowData();
@@ -23,68 +23,7 @@ var AppComponent = (function () {
     }
     AppComponent.prototype.createRowData = function () {
         var _this = this;
-        var url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
-        var body = {
-            sort: [
-                { "@timestamp": "desc" }
-            ],
-            query: {
-                "filtered": {
-                    "filter": {
-                        "bool": {
-                            "must": [
-                                {
-                                    "range": {
-                                        "@timestamp": {
-                                            "gte": "now-20d",
-                                            "lte": "now"
-                                        }
-                                    }
-                                },
-                                { "bool": { "should": [
-                                            {
-                                                "exists": { "field": "thread_name" }
-                                            },
-                                            {
-                                                "exists": { "field": "threadid" }
-                                            }
-                                        ]
-                                    }
-                                },
-                                { "bool": { "should": [
-                                            {
-                                                "exists": { "field": "logger_name" }
-                                            },
-                                            {
-                                                "exists": { "field": "loggername" }
-                                            }
-                                        ]
-                                    }
-                                },
-                                { "bool": { "should": [
-                                            {
-                                                "exists": { "field": "loglevel" }
-                                            },
-                                            {
-                                                "exists": { "field": "level" }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            size: "50",
-        };
-        var requestoptions = new http_1.RequestOptions({
-            method: http_1.RequestMethod.Post,
-            url: url,
-            body: JSON.stringify(body)
-        });
-        this.http.request(new http_1.Request(requestoptions))
-            .subscribe(function (res) {
+        this._elasticService.listAllLogs().subscribe(function (res) {
             var data = res.json();
             for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
                 var logEntry = _a[_i];
@@ -117,7 +56,7 @@ var AppComponent = (function () {
         this.columnDefs = [
             {
                 headerName: '#', width: 30, checkboxSelection: false, suppressSorting: true,
-                suppressMenu: true, pinned: true
+                suppressMenu: true, pinned: true, editable: true
             },
             {
                 headerName: 'Time', width: 200, checkboxSelection: false, suppressSorting: true, field: "time",
@@ -217,10 +156,9 @@ var AppComponent = (function () {
             selector: 'my-app',
             templateUrl: 'component/appcomponent.html',
             directives: [main_1.AgGridNg2],
-            providers: http_1.HTTP_PROVIDERS,
             styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
         }), 
-        __metadata('design:paramtypes', [http_1.Http])
+        __metadata('design:paramtypes', [elastic_service_1.ElasticService])
     ], AppComponent);
     return AppComponent;
 })();
