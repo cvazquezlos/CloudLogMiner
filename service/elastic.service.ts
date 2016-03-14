@@ -6,11 +6,27 @@
 import {Injectable} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
 
-const ES_URL = 'http://127.0.0.1:9200/';
-const INDEX = "<logstash-*>";
+/*
+ const ES_URL = 'http://127.0.0.1:9200/';
+ const INDEX = "<logstash-*>";*/
+
+const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
+const INDEX = "<kurento-*>";
+
 
 @Injectable()
 export class ElasticService {
+
+    dataSource= {
+        pageSize: 50,
+        rowCount: -1,   //total number of rows unknown
+        overflowSize: 10,
+        maxPagesInCache: 2,
+        getRows: this.scrollElastic.bind(this)
+
+    };
+
+    scrollId:string="";
 
     constructor(private _http: Http) {}
 
@@ -22,7 +38,7 @@ export class ElasticService {
             });
     }
 
-    listAllLogs(index:String) {
+    private listAllLogs() {
         let url =ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
         let body= {
             sort: [
@@ -62,7 +78,7 @@ export class ElasticService {
                     }
                 }
             },
-            size: "50",
+            size: "50"
             //The following are the fields that are requested from each log. Should be consistent with the definition of logValue
             //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
         };
@@ -72,6 +88,83 @@ export class ElasticService {
             url,
             body: JSON.stringify(body)
         });
+
         return this._http.request(new Request(requestoptions));
     }
+
+    scrollElastic (params: any) {
+        console.log('asking for ' + params.startRow + ' to ' + params.endRow);
+        console.log(this.scrollId);
+
+        let size = params.endRow - params.startRow;
+
+        if(!this.scrollId){
+            let rowData=[];
+            let rowsThisPage=this.listAllLogs().subscribe((res: Response) => {
+                let data = res.json();
+
+                let scrollid = data._scroll_id;
+                this.scrollId = scrollid;
+
+                for (let logEntry of data.hits.hits) {
+                    let fullmessage:string = logEntry._source.message.replace('\n', '');
+
+                    let type = logEntry._type;
+                    let time = logEntry._source['@timestamp'];
+                    let message = logEntry._source.message;
+                    let level = logEntry._source.level || logEntry._source.loglevel;
+                    let thread = logEntry._source.thread_name || logEntry._source.threadid;
+                    let logger = logEntry._source.logger_name || logEntry._source.loggername;
+                    let host = logEntry._source.host;
+
+                    let logValue = {type, time, message, level, thread, logger, host};
+
+                    rowData.push(logValue);
+                }
+                console.log(rowData);
+                params.successCallback(rowData.slice());
+            });
+            //params.successCallback(rowsThisPage.slice());
+        }else {
+            let body = {
+                "scroll" : "1m",
+                "scroll_id" : this.scrollId
+            }
+            let url = ES_URL + INDEX + '/_search/scroll';
+            let requestoptions = new RequestOptions({
+                method: RequestMethod.Post,
+                url,
+                body: JSON.stringify(body)
+            });
+            let rowData=[];
+            this._http.request(new Request(requestoptions)).subscribe((res:Response)=>{
+                let data = res.json();
+
+                let scrollid = data._scroll_id;
+                this.scrollId = scrollid;
+
+                for (let logEntry of data.hits.hits) {
+                    let fullmessage:string = logEntry._source.message.replace('\n', '');
+
+                    let type = logEntry._type;
+                    let time = logEntry._source['@timestamp'];
+                    let message = logEntry._source.message;
+                    let level = logEntry._source.level || logEntry._source.loglevel;
+                    let thread = logEntry._source.thread_name || logEntry._source.threadid;
+                    let logger = logEntry._source.logger_name || logEntry._source.loggername;
+                    let host = logEntry._source.host;
+
+                    let logValue = {type, time, message, level, thread, logger, host};
+
+                    rowData.push(logValue);
+                }
+                let rowsThisPage=rowData.slice();
+                let lastRow=rowsThisPage.length;        //<- This is not java, length a property -not length()
+                params.successCallback(rowsThisPage,lastRow);
+                //params.failCallback()
+            });
+        }
+
+    }
+
 }

@@ -4,12 +4,6 @@ import {GridOptions} from 'ag-grid/main';
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import {ElasticService} from "../service/elastic.service";
 
-const ES_URL = 'http://127.0.0.1:9200/';
-const INDEX = "<logstash-*>";
-/*
-const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-const INDEX = "<kurento-*>";*/
-
 @Component({
     selector: 'my-app',
     templateUrl: 'component/appcomponent.html',
@@ -25,19 +19,26 @@ export class AppComponent {
     private columnDefs: any[];
     private rowCount: string;
 
-    constructor(/*private http: Http,*/ private _elasticService:ElasticService) {
+    constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{};
+        this.gridOptions.virtualPaging = true;
+        this.gridOptions.datasource = this._elasticService.dataSource;
+        console.log(this.gridOptions)
         this.rowData=[];
-        this.createRowData();
+        //this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
     }
-
+/*
     private createRowData() {
 
         this._elasticService.listAllLogs().subscribe((res: Response) => {
             let data = res.json();
+
+            let scrollid = data._scroll_id;
+            this._elasticService.scrollId=scrollid;
+
             for (let logEntry of data.hits.hits) {
                 let fullmessage: string = logEntry._source.message.replace('\n', '');
 
@@ -50,11 +51,13 @@ export class AppComponent {
                 let host = logEntry._source.host;
 
                 let logValue = { type, time, message, level, thread, logger, host };
+
                 this.rowData.push(logValue);
                 this.rowData = this.rowData.slice();
+                this.gridOptions.api.setDatasource(this._elasticService.dataSource);
             }
         });
-    }
+    }*/
 
     private createColumnDefs() {
 

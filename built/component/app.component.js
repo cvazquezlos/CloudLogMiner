@@ -10,37 +10,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('angular2/core');
 var main_1 = require('ag-grid-ng2/main');
 var elastic_service_1 = require("../service/elastic.service");
-var ES_URL = 'http://127.0.0.1:9200/';
-var INDEX = "<logstash-*>";
 var AppComponent = (function () {
     function AppComponent(_elasticService) {
         this._elasticService = _elasticService;
         this.gridOptions = {};
+        this.gridOptions.virtualPaging = true;
+        this.gridOptions.datasource = this._elasticService.dataSource;
+        console.log(this.gridOptions);
         this.rowData = [];
-        this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
     }
-    AppComponent.prototype.createRowData = function () {
-        var _this = this;
-        this._elasticService.listAllLogs().subscribe(function (res) {
-            var data = res.json();
-            for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
-                var logEntry = _a[_i];
-                var fullmessage = logEntry._source.message.replace('\n', '');
-                var type = logEntry._type;
-                var time = logEntry._source['@timestamp'];
-                var message = logEntry._source.message;
-                var level = logEntry._source.level || logEntry._source.loglevel;
-                var thread = logEntry._source.thread_name || logEntry._source.threadid;
-                var logger = logEntry._source.logger_name || logEntry._source.loggername;
-                var host = logEntry._source.host;
-                var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
-                _this.rowData.push(logValue);
-                _this.rowData = _this.rowData.slice();
-            }
-        });
-    };
     AppComponent.prototype.createColumnDefs = function () {
         var rowColor = function (params) {
             if (params.data.level === 'ERROR') {

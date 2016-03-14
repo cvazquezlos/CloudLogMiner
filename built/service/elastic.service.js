@@ -9,11 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("angular2/core");
 var http_1 = require('angular2/http');
-var ES_URL = 'http://127.0.0.1:9200/';
-var INDEX = "<logstash-*>";
+var ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
+var INDEX = "<kurento-*>";
 var ElasticService = (function () {
     function ElasticService(_http) {
         this._http = _http;
+        this.dataSource = {
+            pageSize: 50,
+            rowCount: -1,
+            overflowSize: 10,
+            maxPagesInCache: 2,
+            getRows: this.scrollElastic.bind(this)
+        };
+        this.scrollId = "";
     }
     ElasticService.prototype.listIndices = function () {
         return this._http.get('http://localhost:9200/_stats/index,store')
@@ -22,7 +30,7 @@ var ElasticService = (function () {
             return Object.getOwnPropertyNames(res.indices);
         });
     };
-    ElasticService.prototype.listAllLogs = function (index) {
+    ElasticService.prototype.listAllLogs = function () {
         var url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
         var body = {
             sort: [
@@ -62,7 +70,7 @@ var ElasticService = (function () {
                     }
                 }
             },
-            size: "50",
+            size: "50"
         };
         var requestoptions = new http_1.RequestOptions({
             method: http_1.RequestMethod.Post,
@@ -70,6 +78,69 @@ var ElasticService = (function () {
             body: JSON.stringify(body)
         });
         return this._http.request(new http_1.Request(requestoptions));
+    };
+    ElasticService.prototype.scrollElastic = function (params) {
+        var _this = this;
+        console.log('asking for ' + params.startRow + ' to ' + params.endRow);
+        console.log(this.scrollId);
+        var size = params.endRow - params.startRow;
+        if (!this.scrollId) {
+            var rowData = [];
+            var rowsThisPage = this.listAllLogs().subscribe(function (res) {
+                var data = res.json();
+                var scrollid = data._scroll_id;
+                _this.scrollId = scrollid;
+                for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
+                    var logEntry = _a[_i];
+                    var fullmessage = logEntry._source.message.replace('\n', '');
+                    var type = logEntry._type;
+                    var time = logEntry._source['@timestamp'];
+                    var message = logEntry._source.message;
+                    var level = logEntry._source.level || logEntry._source.loglevel;
+                    var thread = logEntry._source.thread_name || logEntry._source.threadid;
+                    var logger = logEntry._source.logger_name || logEntry._source.loggername;
+                    var host = logEntry._source.host;
+                    var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
+                    rowData.push(logValue);
+                }
+                console.log(rowData);
+                params.successCallback(rowData.slice());
+            });
+        }
+        else {
+            var body = {
+                "scroll": "1m",
+                "scroll_id": this.scrollId
+            };
+            var url = ES_URL + INDEX + '/_search/scroll';
+            var requestoptions = new http_1.RequestOptions({
+                method: http_1.RequestMethod.Post,
+                url: url,
+                body: JSON.stringify(body)
+            });
+            var rowData = [];
+            this._http.request(new http_1.Request(requestoptions)).subscribe(function (res) {
+                var data = res.json();
+                var scrollid = data._scroll_id;
+                _this.scrollId = scrollid;
+                for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
+                    var logEntry = _a[_i];
+                    var fullmessage = logEntry._source.message.replace('\n', '');
+                    var type = logEntry._type;
+                    var time = logEntry._source['@timestamp'];
+                    var message = logEntry._source.message;
+                    var level = logEntry._source.level || logEntry._source.loglevel;
+                    var thread = logEntry._source.thread_name || logEntry._source.threadid;
+                    var logger = logEntry._source.logger_name || logEntry._source.loggername;
+                    var host = logEntry._source.host;
+                    var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
+                    rowData.push(logValue);
+                }
+                var rowsThisPage = rowData.slice();
+                var lastRow = rowsThisPage.length;
+                params.successCallback(rowsThisPage, lastRow);
+            });
+        }
     };
     ElasticService = __decorate([
         core_1.Injectable(), 
