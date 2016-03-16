@@ -15,10 +15,10 @@ var ElasticService = (function () {
     function ElasticService(_http) {
         this._http = _http;
         this.dataSource = {
-            pageSize: 50,
+            pageSize: 100,
             rowCount: -1,
             overflowSize: 10,
-            maxPagesInCache: 2,
+            maxConcurrentRequests: 2,
             getRows: this.scrollElastic.bind(this)
         };
         this.scrollId = "";
@@ -43,7 +43,7 @@ var ElasticService = (function () {
                             "must": [
                                 { "range": {
                                         "@timestamp": {
-                                            "gte": "now-20d",
+                                            "gte": "now-200d",
                                             "lte": "now" }
                                     }
                                 },
@@ -82,7 +82,6 @@ var ElasticService = (function () {
     ElasticService.prototype.scrollElastic = function (params) {
         var _this = this;
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
-        console.log(this.scrollId);
         var size = params.endRow - params.startRow;
         if (!this.scrollId) {
             var rowData = [];
@@ -112,7 +111,7 @@ var ElasticService = (function () {
                 "scroll": "1m",
                 "scroll_id": this.scrollId
             };
-            var url = ES_URL + INDEX + '/_search/scroll';
+            var url = ES_URL + '/_search/scroll';
             var requestoptions = new http_1.RequestOptions({
                 method: http_1.RequestMethod.Post,
                 url: url,
@@ -137,9 +136,8 @@ var ElasticService = (function () {
                     rowData.push(logValue);
                 }
                 var rowsThisPage = rowData.slice();
-                var lastRow = rowsThisPage.length;
-                params.successCallback(rowsThisPage, lastRow);
-            });
+                params.successCallback(rowsThisPage);
+            }, function (err) { return console.log(err); });
         }
     };
     ElasticService = __decorate([

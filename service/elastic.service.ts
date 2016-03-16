@@ -18,10 +18,11 @@ const INDEX = "<kurento-*>";
 export class ElasticService {
 
     dataSource= {
-        pageSize: 50,
+        pageSize: 100,
         rowCount: -1,   //total number of rows unknown
         overflowSize: 10,
-        maxPagesInCache: 2,
+        //maxPagesInCache: 2, default is no limit
+        maxConcurrentRequests: 2,
         getRows: this.scrollElastic.bind(this)
 
     };
@@ -51,7 +52,7 @@ export class ElasticService {
                             "must": [
                                 {"range": {
                                         "@timestamp": {
-                                            "gte": "now-20d",
+                                            "gte": "now-200d",
                                             "lte": "now" }
                                     }
                                 },
@@ -94,7 +95,6 @@ export class ElasticService {
 
     scrollElastic (params: any) {
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
-        console.log(this.scrollId);
 
         let size = params.endRow - params.startRow;
 
@@ -130,7 +130,7 @@ export class ElasticService {
                 "scroll" : "1m",
                 "scroll_id" : this.scrollId
             }
-            let url = ES_URL + INDEX + '/_search/scroll';
+            let url = ES_URL + '/_search/scroll';
             let requestoptions = new RequestOptions({
                 method: RequestMethod.Post,
                 url,
@@ -159,10 +159,10 @@ export class ElasticService {
                     rowData.push(logValue);
                 }
                 let rowsThisPage=rowData.slice();
-                let lastRow=rowsThisPage.length;        //<- This is not java, length a property -not length()
-                params.successCallback(rowsThisPage,lastRow);
+                //let lastRow=rowsThisPage.length;        //<- This is not java, length a property -not length()
+                params.successCallback(rowsThisPage)//,lastRow);
                 //params.failCallback()
-            });
+            }, err=>console.log(err));
         }
 
     }

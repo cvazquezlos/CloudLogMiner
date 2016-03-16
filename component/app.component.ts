@@ -26,7 +26,7 @@ export class AppComponent {
         this.gridOptions.datasource = this._elasticService.dataSource;
         console.log(this.gridOptions)
         this.rowData=[];
-        //this.createRowData();
+        //this.createRowData();  -- UPDATED WHICH VIRTUAL PAGING
         this.createColumnDefs();
         this.showGrid = true;
     }
