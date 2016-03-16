@@ -14,10 +14,11 @@ var INDEX = "<kurento-*>";
 var ElasticService = (function () {
     function ElasticService(_http) {
         this._http = _http;
+        this.sizeOfPage = 100;
         this.dataSource = {
-            pageSize: 100,
+            pageSize: this.sizeOfPage,
             rowCount: -1,
-            overflowSize: 10,
+            overflowSize: 4,
             maxConcurrentRequests: 2,
             getRows: this.scrollElastic.bind(this)
         };
@@ -70,7 +71,7 @@ var ElasticService = (function () {
                     }
                 }
             },
-            size: "50"
+            size: this.sizeOfPage
         };
         var requestoptions = new http_1.RequestOptions({
             method: http_1.RequestMethod.Post,
@@ -82,28 +83,10 @@ var ElasticService = (function () {
     ElasticService.prototype.scrollElastic = function (params) {
         var _this = this;
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
-        var size = params.endRow - params.startRow;
         if (!this.scrollId) {
-            var rowData = [];
-            var rowsThisPage = this.listAllLogs().subscribe(function (res) {
-                var data = res.json();
-                var scrollid = data._scroll_id;
-                _this.scrollId = scrollid;
-                for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
-                    var logEntry = _a[_i];
-                    var fullmessage = logEntry._source.message.replace('\n', '');
-                    var type = logEntry._type;
-                    var time = logEntry._source['@timestamp'];
-                    var message = logEntry._source.message;
-                    var level = logEntry._source.level || logEntry._source.loglevel;
-                    var thread = logEntry._source.thread_name || logEntry._source.threadid;
-                    var logger = logEntry._source.logger_name || logEntry._source.loggername;
-                    var host = logEntry._source.host;
-                    var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
-                    rowData.push(logValue);
-                }
-                console.log(rowData);
-                params.successCallback(rowData.slice());
+            this.listAllLogs().subscribe(function (res) {
+                var data = _this.elasticLogProcessing(res);
+                params.successCallback(data.slice());
             });
         }
         else {
@@ -117,28 +100,30 @@ var ElasticService = (function () {
                 url: url,
                 body: JSON.stringify(body)
             });
-            var rowData = [];
             this._http.request(new http_1.Request(requestoptions)).subscribe(function (res) {
-                var data = res.json();
-                var scrollid = data._scroll_id;
-                _this.scrollId = scrollid;
-                for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
-                    var logEntry = _a[_i];
-                    var fullmessage = logEntry._source.message.replace('\n', '');
-                    var type = logEntry._type;
-                    var time = logEntry._source['@timestamp'];
-                    var message = logEntry._source.message;
-                    var level = logEntry._source.level || logEntry._source.loglevel;
-                    var thread = logEntry._source.thread_name || logEntry._source.threadid;
-                    var logger = logEntry._source.logger_name || logEntry._source.loggername;
-                    var host = logEntry._source.host;
-                    var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
-                    rowData.push(logValue);
-                }
-                var rowsThisPage = rowData.slice();
-                params.successCallback(rowsThisPage);
+                var data2 = _this.elasticLogProcessing(res);
+                params.successCallback(data2.slice());
             }, function (err) { return console.log(err); });
         }
+    };
+    ElasticService.prototype.elasticLogProcessing = function (res) {
+        var rowData = [];
+        var data = res.json();
+        var id = data._scroll_id;
+        this.scrollId = id;
+        for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
+            var logEntry = _a[_i];
+            var type = logEntry._type;
+            var time = logEntry._source['@timestamp'];
+            var message = logEntry._source.message;
+            var level = logEntry._source.level || logEntry._source.loglevel;
+            var thread = logEntry._source.thread_name || logEntry._source.threadid;
+            var logger = logEntry._source.logger_name || logEntry._source.loggername;
+            var host = logEntry._source.host;
+            var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
+            rowData.push(logValue);
+        }
+        return rowData;
     };
     ElasticService = __decorate([
         core_1.Injectable(), 

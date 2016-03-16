@@ -30,34 +30,6 @@ export class AppComponent {
         this.createColumnDefs();
         this.showGrid = true;
     }
-/*
-    private createRowData() {
-
-        this._elasticService.listAllLogs().subscribe((res: Response) => {
-            let data = res.json();
-
-            let scrollid = data._scroll_id;
-            this._elasticService.scrollId=scrollid;
-
-            for (let logEntry of data.hits.hits) {
-                let fullmessage: string = logEntry._source.message.replace('\n', '');
-
-                let type = logEntry._type;
-                let time = logEntry._source['@timestamp'];
-                let message = logEntry._source.message;
-                let level = logEntry._source.level || logEntry._source.loglevel;
-                let thread = logEntry._source.thread_name || logEntry._source.threadid;
-                let logger = logEntry._source.logger_name || logEntry._source.loggername;
-                let host = logEntry._source.host;
-
-                let logValue = { type, time, message, level, thread, logger, host };
-
-                this.rowData.push(logValue);
-                this.rowData = this.rowData.slice();
-                this.gridOptions.api.setDatasource(this._elasticService.dataSource);
-            }
-        });
-    }*/
 
     private createColumnDefs() {
 

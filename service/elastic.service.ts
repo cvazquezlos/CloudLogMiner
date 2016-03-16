@@ -16,22 +16,25 @@ const INDEX = "<kurento-*>";
 
 @Injectable()
 export class ElasticService {
+    sizeOfPage=100;     //has to be consistent with http call and datasource
 
     dataSource= {
-        pageSize: 100,
+        pageSize: this.sizeOfPage,
         rowCount: -1,   //total number of rows unknown
-        overflowSize: 10,
+        overflowSize: 4,
         //maxPagesInCache: 2, default is no limit
         maxConcurrentRequests: 2,
-        getRows: this.scrollElastic.bind(this)
+        getRows: this.scrollElastic.bind(this)      //Grid will dinamically use this function to retrieve data
 
     };
 
-    scrollId:string="";
+    scrollId:string="";         //Elasticsearch scroll indicator
 
-    constructor(private _http: Http) {}
+    constructor(private _http: Http) {
 
-    listIndices() {
+    }
+
+    private listIndices() {                     //Unused
         return this._http.get('http://localhost:9200/_stats/index,store')
             .map(res=>res.json())
             .map(res => {
@@ -79,8 +82,8 @@ export class ElasticService {
                     }
                 }
             },
-            size: "50"
-            //The following are the fields that are requested from each log. Should be consistent with the definition of logValue
+            size: this.sizeOfPage
+            //The following are the fields that are requested from each log. They should be consistent with the definition of logValue
             //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
         };
 
@@ -96,35 +99,12 @@ export class ElasticService {
     scrollElastic (params: any) {
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
 
-        let size = params.endRow - params.startRow;
-
         if(!this.scrollId){
-            let rowData=[];
-            let rowsThisPage=this.listAllLogs().subscribe((res: Response) => {
-                let data = res.json();
+            this.listAllLogs().subscribe((res: Response) => {
 
-                let scrollid = data._scroll_id;
-                this.scrollId = scrollid;
-
-                for (let logEntry of data.hits.hits) {
-                    let fullmessage:string = logEntry._source.message.replace('\n', '');
-
-                    let type = logEntry._type;
-                    let time = logEntry._source['@timestamp'];
-                    let message = logEntry._source.message;
-                    let level = logEntry._source.level || logEntry._source.loglevel;
-                    let thread = logEntry._source.thread_name || logEntry._source.threadid;
-                    let logger = logEntry._source.logger_name || logEntry._source.loggername;
-                    let host = logEntry._source.host;
-
-                    let logValue = {type, time, message, level, thread, logger, host};
-
-                    rowData.push(logValue);
-                }
-                console.log(rowData);
-                params.successCallback(rowData.slice());
+                let data = this.elasticLogProcessing(res);
+                params.successCallback(data.slice());
             });
-            //params.successCallback(rowsThisPage.slice());
         }else {
             let body = {
                 "scroll" : "1m",
@@ -136,35 +116,38 @@ export class ElasticService {
                 url,
                 body: JSON.stringify(body)
             });
-            let rowData=[];
             this._http.request(new Request(requestoptions)).subscribe((res:Response)=>{
-                let data = res.json();
 
-                let scrollid = data._scroll_id;
-                this.scrollId = scrollid;
-
-                for (let logEntry of data.hits.hits) {
-                    let fullmessage:string = logEntry._source.message.replace('\n', '');
-
-                    let type = logEntry._type;
-                    let time = logEntry._source['@timestamp'];
-                    let message = logEntry._source.message;
-                    let level = logEntry._source.level || logEntry._source.loglevel;
-                    let thread = logEntry._source.thread_name || logEntry._source.threadid;
-                    let logger = logEntry._source.logger_name || logEntry._source.loggername;
-                    let host = logEntry._source.host;
-
-                    let logValue = {type, time, message, level, thread, logger, host};
-
-                    rowData.push(logValue);
-                }
-                let rowsThisPage=rowData.slice();
-                //let lastRow=rowsThisPage.length;        //<- This is not java, length a property -not length()
-                params.successCallback(rowsThisPage)//,lastRow);
+                let data2 = this.elasticLogProcessing(res);
+                params.successCallback(data2.slice());
                 //params.failCallback()
             }, err=>console.log(err));
         }
 
+    }
+
+    elasticLogProcessing(res: Response) {
+        let rowData=[];
+        let data = res.json();
+
+        let id = data._scroll_id;
+        this.scrollId = id;
+
+        for (let logEntry of data.hits.hits) {
+
+            let type = logEntry._type;
+            let time = logEntry._source['@timestamp'];
+            let message = logEntry._source.message;
+            let level = logEntry._source.level || logEntry._source.loglevel;
+            let thread = logEntry._source.thread_name || logEntry._source.threadid;
+            let logger = logEntry._source.logger_name || logEntry._source.loggername;
+            let host = logEntry._source.host;
+
+            let logValue = {type, time, message, level, thread, logger, host};
+
+            rowData.push(logValue);
+        }
+        return rowData;
     }
 
 }
