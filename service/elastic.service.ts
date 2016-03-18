@@ -5,6 +5,7 @@
 //Removed map.d import as no necessary
 import {Injectable} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
+import {EventEmitter} from "angular2/core";
 
 /*
  const ES_URL = 'http://127.0.0.1:9200/';
@@ -30,8 +31,10 @@ export class ElasticService {
 
     scrollId:string="";         //Elasticsearch scroll indicator
 
-    constructor(private _http: Http) {
+    public loading$: EventEmitter<Boolean>;
 
+    constructor(private _http: Http) {
+        this.loading$ = new EventEmitter();
     }
 
     private listIndices() {                     //Unused
@@ -97,12 +100,14 @@ export class ElasticService {
     }
 
     scrollElastic (params: any) {
+        this.loading$.emit(true);
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
 
         if(!this.scrollId){
             this.listAllLogs().subscribe((res: Response) => {
-
+                let that=this;
                 let data = this.elasticLogProcessing(res);
+                that.loading$.emit(false);
                 params.successCallback(data.slice());
             });
         }else {
@@ -119,6 +124,7 @@ export class ElasticService {
             this._http.request(new Request(requestoptions)).subscribe((res:Response)=>{
 
                 let data2 = this.elasticLogProcessing(res);
+                this.loading$.emit(false);
                 params.successCallback(data2.slice());
                 //params.failCallback()
             }, err=>console.log(err));

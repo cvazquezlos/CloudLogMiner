@@ -12,14 +12,23 @@ var main_1 = require('ag-grid-ng2/main');
 var elastic_service_1 = require("../service/elastic.service");
 var AppComponent = (function () {
     function AppComponent(_elasticService) {
+        var _this = this;
         this._elasticService = _elasticService;
         this.gridOptions = {};
         this.gridOptions.virtualPaging = true;
         this.gridOptions.datasource = this._elasticService.dataSource;
-        console.log(this.gridOptions);
         this.rowData = [];
         this.createColumnDefs();
         this.showGrid = true;
+        _elasticService.loading$.subscribe(function (bool) {
+            console.log(bool);
+            if (bool) {
+                _this.gridOptions.api.showLoadingOverlay(bool);
+            }
+            else {
+                _this.gridOptions.api.hideOverlay();
+            }
+        });
     }
     AppComponent.prototype.createColumnDefs = function () {
         var rowColor = function (params) {

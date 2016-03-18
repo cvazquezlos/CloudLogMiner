@@ -24,11 +24,20 @@ export class AppComponent {
         this.gridOptions = <GridOptions>{};
         this.gridOptions.virtualPaging = true;
         this.gridOptions.datasource = this._elasticService.dataSource;
-        console.log(this.gridOptions)
         this.rowData=[];
-        //this.createRowData();  -- UPDATED WHICH VIRTUAL PAGING
+        //this.createRowData();  -- UPDATED WITH VIRTUAL PAGING
         this.createColumnDefs();
         this.showGrid = true;
+
+        _elasticService.loading$.subscribe((bool) => {
+            console.log(bool);
+            if(bool){
+                this.gridOptions.api.showLoadingOverlay(bool);
+            }else {
+                this.gridOptions.api.hideOverlay();
+            }
+
+        });
     }
 
     private createColumnDefs() {

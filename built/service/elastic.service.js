@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("angular2/core");
 var http_1 = require('angular2/http');
+var core_2 = require("angular2/core");
 var ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
 var INDEX = "<kurento-*>";
 var ElasticService = (function () {
@@ -23,6 +24,7 @@ var ElasticService = (function () {
             getRows: this.scrollElastic.bind(this)
         };
         this.scrollId = "";
+        this.loading$ = new core_2.EventEmitter();
     }
     ElasticService.prototype.listIndices = function () {
         return this._http.get('http://localhost:9200/_stats/index,store')
@@ -82,10 +84,13 @@ var ElasticService = (function () {
     };
     ElasticService.prototype.scrollElastic = function (params) {
         var _this = this;
+        this.loading$.emit(true);
         console.log('asking for ' + params.startRow + ' to ' + params.endRow);
         if (!this.scrollId) {
             this.listAllLogs().subscribe(function (res) {
+                var that = _this;
                 var data = _this.elasticLogProcessing(res);
+                that.loading$.emit(false);
                 params.successCallback(data.slice());
             });
         }
@@ -102,6 +107,7 @@ var ElasticService = (function () {
             });
             this._http.request(new http_1.Request(requestoptions)).subscribe(function (res) {
                 var data2 = _this.elasticLogProcessing(res);
+                _this.loading$.emit(false);
                 params.successCallback(data2.slice());
             }, function (err) { return console.log(err); });
         }
