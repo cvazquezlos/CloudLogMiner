@@ -19,25 +19,46 @@ export class AppComponent {
     private columnDefs: any[];
     private rowCount: string;
 
+    private sizeOfPage=100;     //has to be consistent with http call and datasource
+
+    dataSource= {
+        pageSize: this.sizeOfPage,
+        rowCount: -1,   //total number of rows unknown
+        overflowSize: 4,
+        //maxPagesInCache: 2, default is no limit
+        maxConcurrentRequests: 2,
+        getRows: this.getRows.bind(this)      //Grid will dinamically use this function to retrieve data
+
+    };
+
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{};
         this.gridOptions.virtualPaging = true;
-        this.gridOptions.datasource = this._elasticService.dataSource;
+        this.gridOptions.datasource = this.dataSource;
         this.rowData=[];
         //this.createRowData();  -- UPDATED WITH VIRTUAL PAGING
         this.createColumnDefs();
         this.showGrid = true;
+    }
 
-        _elasticService.loading$.subscribe((bool) => {
-            console.log(bool);
-            if(bool){
-                this.gridOptions.api.showLoadingOverlay(bool);
-            }else {
+    private getRows(params:any){
+        this.gridOptions.api.showLoadingOverlay();
+        if(!this._elasticService.scrollId){
+            this._elasticService.listAllLogs(this.sizeOfPage).subscribe((res: Response) => {
+                
+                let data = this.elasticLogProcessing(res);
                 this.gridOptions.api.hideOverlay();
-            }
+                params.successCallback(data.slice());
+            });
+        }else{
+            this._elasticService.scrollElastic().subscribe((res:Response)=>{
 
-        });
+                let data2 = this.elasticLogProcessing(res);
+                this.gridOptions.api.hideOverlay();
+                params.successCallback(data2.slice());
+            });
+        }
     }
 
     private createColumnDefs() {
@@ -50,7 +71,7 @@ export class AppComponent {
             } else {
                 return '';
             }
-        }
+        };
 
         this.columnDefs = [
             {
@@ -173,6 +194,30 @@ export class AppComponent {
     // the method just prints the event name
     private onColumnEvent($event) {
         console.log('onColumnEvent: ' + $event);
+    }
+
+    elasticLogProcessing(res: Response) {
+        let rowData=[];
+        let data = res.json();
+
+        let id = data._scroll_id;
+        this.scrollId = id;
+
+        for (let logEntry of data.hits.hits) {
+
+            let type = logEntry._type;
+            let time = logEntry._source['@timestamp'];
+            let message = logEntry._source.message;
+            let level = logEntry._source.level || logEntry._source.loglevel;
+            let thread = logEntry._source.thread_name || logEntry._source.threadid;
+            let logger = logEntry._source.logger_name || logEntry._source.loggername;
+            let host = logEntry._source.host;
+
+            let logValue = {type, time, message, level, thread, logger, host};
+
+            rowData.push(logValue);
+        }
+        return rowData;
     }
 
 }

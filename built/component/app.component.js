@@ -12,24 +12,40 @@ var main_1 = require('ag-grid-ng2/main');
 var elastic_service_1 = require("../service/elastic.service");
 var AppComponent = (function () {
     function AppComponent(_elasticService) {
-        var _this = this;
         this._elasticService = _elasticService;
+        this.sizeOfPage = 100;
+        this.dataSource = {
+            pageSize: this.sizeOfPage,
+            rowCount: -1,
+            overflowSize: 4,
+            maxConcurrentRequests: 2,
+            getRows: this.getRows.bind(this)
+        };
         this.gridOptions = {};
         this.gridOptions.virtualPaging = true;
-        this.gridOptions.datasource = this._elasticService.dataSource;
+        this.gridOptions.datasource = this.dataSource;
         this.rowData = [];
         this.createColumnDefs();
         this.showGrid = true;
-        _elasticService.loading$.subscribe(function (bool) {
-            console.log(bool);
-            if (bool) {
-                _this.gridOptions.api.showLoadingOverlay(bool);
-            }
-            else {
-                _this.gridOptions.api.hideOverlay();
-            }
-        });
     }
+    AppComponent.prototype.getRows = function (params) {
+        var _this = this;
+        this.gridOptions.api.showLoadingOverlay();
+        if (!this._elasticService.scrollId) {
+            this._elasticService.listAllLogs(this.sizeOfPage).subscribe(function (res) {
+                var data = _this.elasticLogProcessing(res);
+                _this.gridOptions.api.hideOverlay();
+                params.successCallback(data.slice());
+            });
+        }
+        else {
+            this._elasticService.scrollElastic().subscribe(function (res) {
+                var data2 = _this.elasticLogProcessing(res);
+                _this.gridOptions.api.hideOverlay();
+                params.successCallback(data2.slice());
+            });
+        }
+    };
     AppComponent.prototype.createColumnDefs = function () {
         var rowColor = function (params) {
             if (params.data.level === 'ERROR') {
@@ -139,6 +155,25 @@ var AppComponent = (function () {
     };
     AppComponent.prototype.onColumnEvent = function ($event) {
         console.log('onColumnEvent: ' + $event);
+    };
+    AppComponent.prototype.elasticLogProcessing = function (res) {
+        var rowData = [];
+        var data = res.json();
+        var id = data._scroll_id;
+        this.scrollId = id;
+        for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
+            var logEntry = _a[_i];
+            var type = logEntry._type;
+            var time = logEntry._source['@timestamp'];
+            var message = logEntry._source.message;
+            var level = logEntry._source.level || logEntry._source.loglevel;
+            var thread = logEntry._source.thread_name || logEntry._source.threadid;
+            var logger = logEntry._source.logger_name || logEntry._source.loggername;
+            var host = logEntry._source.host;
+            var logValue = { type: type, time: time, message: message, level: level, thread: thread, logger: logger, host: host };
+            rowData.push(logValue);
+        }
+        return rowData;
     };
     AppComponent = __decorate([
         core_1.Component({
