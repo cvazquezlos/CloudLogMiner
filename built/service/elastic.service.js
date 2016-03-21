@@ -87,6 +87,17 @@ var ElasticService = (function () {
         });
         return this._http.request(new http_1.Request(requestoptions));
     };
+    ElasticService.prototype.search = function (value) {
+        var body = {
+            "multi_match": {
+                "query": value,
+                "type": "best_fields",
+                "fields": "*",
+                "tie_breaker": 0.3,
+                "minimum_should_match": "30%"
+            }
+        };
+    };
     ElasticService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [http_1.Http])

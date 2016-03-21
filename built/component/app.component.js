@@ -150,8 +150,8 @@ var AppComponent = (function () {
     AppComponent.prototype.onRowClicked = function ($event) {
         console.log('onRowClicked: ' + $event.node.data.time);
     };
-    AppComponent.prototype.onQuickFilterChanged = function ($event) {
-        this.gridOptions.api.setQuickFilter($event.target.value);
+    AppComponent.prototype.onSearchInputChanged = function ($event) {
+        this._elasticService.search($event.target.value);
     };
     AppComponent.prototype.onColumnEvent = function ($event) {
         console.log('onColumnEvent: ' + $event);
@@ -160,7 +160,7 @@ var AppComponent = (function () {
         var rowData = [];
         var data = res.json();
         var id = data._scroll_id;
-        this.scrollId = id;
+        this._elasticService.scrollId = id;
         for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
             var logEntry = _a[_i];
             var type = logEntry._type;
