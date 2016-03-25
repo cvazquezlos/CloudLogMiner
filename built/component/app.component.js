@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -9,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('angular2/core');
 var main_1 = require('ag-grid-ng2/main');
-var elastic_service_1 = require("../service/elastic.service");
+var elastic_service_1 = require("../services/elastic.service");
 var AppComponent = (function () {
     function AppComponent(_elasticService) {
         this._elasticService = _elasticService;
@@ -160,7 +161,7 @@ var AppComponent = (function () {
         var rowData = [];
         var data = res.json();
         var id = data._scroll_id;
-        this.scrollId = id;
+        this._elasticService.scrollId = id;
         for (var _i = 0, _a = data.hits.hits; _i < _a.length; _i++) {
             var logEntry = _a[_i];
             var type = logEntry._type;
@@ -175,6 +176,9 @@ var AppComponent = (function () {
         }
         return rowData;
     };
+    AppComponent.prototype.getGridOptions = function () {
+        return this.gridOptions;
+    };
     AppComponent = __decorate([
         core_1.Component({
             selector: 'my-app',
@@ -185,6 +189,6 @@ var AppComponent = (function () {
         __metadata('design:paramtypes', [elastic_service_1.ElasticService])
     ], AppComponent);
     return AppComponent;
-})();
+}());
 exports.AppComponent = AppComponent;
 //# sourceMappingURL=app.component.js.map

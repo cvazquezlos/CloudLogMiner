@@ -2,7 +2,7 @@ import {Component} from 'angular2/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
-import {ElasticService} from "../service/elastic.service";
+import {ElasticService} from "../services/elastic.service";
 
 @Component({
     selector: 'my-app',
@@ -42,7 +42,7 @@ export class AppComponent {
         this.showGrid = true;
     }
 
-    private getRows(params:any){
+    public getRows(params:any){
         this.gridOptions.api.showLoadingOverlay();
         if(!this._elasticService.scrollId){
             this._elasticService.listAllLogs(this.sizeOfPage).subscribe((res: Response) => {
@@ -61,7 +61,7 @@ export class AppComponent {
         }
     }
 
-    private createColumnDefs() {
+    public createColumnDefs() {
 
         let rowColor = function(params) {
             if (params.data.level === 'ERROR') {
@@ -196,12 +196,12 @@ export class AppComponent {
         console.log('onColumnEvent: ' + $event);
     }
 
-    elasticLogProcessing(res: Response) {
+    private elasticLogProcessing(res: Response) {
         let rowData=[];
         let data = res.json();
 
         let id = data._scroll_id;
-        this.scrollId = id;
+        this._elasticService.scrollId = id;
 
         for (let logEntry of data.hits.hits) {
 
@@ -218,6 +218,10 @@ export class AppComponent {
             rowData.push(logValue);
         }
         return rowData;
+    }
+
+    public getGridOptions(){
+        return this.gridOptions;
     }
 
 }
