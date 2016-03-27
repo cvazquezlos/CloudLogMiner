@@ -2,7 +2,8 @@
 
     <div style="padding: 4px;">
         <div style="float: right;">
-            <input (keyup)="onSearchInputChanged($event)" type="text" id="searchInput" placeholder="Type text to query..."/>
+            <input #searchinput type="text" id="searchInput" placeholder="Type text to query..."/>
+            <button (click)="search(searchinput.value)">Search</button>
             <button [disabled]="!showGrid" (click)="showGrid=false">Destroy Grid</button>
             <button [disabled]="showGrid" (click)="showGrid=true">Create Grid</button>
         </div>

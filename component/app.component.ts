@@ -27,15 +27,17 @@ export class AppComponent {
         overflowSize: 4,
         //maxPagesInCache: 2, default is no limit
         maxConcurrentRequests: 2,
-        getRows: this.getRows.bind(this)      //Grid will dinamically use this function to retrieve data
+        getRows: this.getRows.bind(this)      //Grid will dynamically use this function to retrieve data
 
     };
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
-        this.gridOptions = <GridOptions>{};
-        this.gridOptions.virtualPaging = true;
-        this.gridOptions.datasource = this.dataSource;
+        this.gridOptions = <GridOptions>{
+            virtualPaging : true,
+            datasource : this.dataSource,
+            enableServerSideSorting: true
+        };
         this.rowData=[];
         //this.createRowData();  -- UPDATED WITH VIRTUAL PAGING
         this.createColumnDefs();
@@ -44,22 +46,36 @@ export class AppComponent {
 
     private getRows(params:any){
         this.gridOptions.api.showLoadingOverlay();
-        if(!this._elasticService.scrollId){
-            this._elasticService.listAllLogs(this.sizeOfPage).subscribe((res: Response) => {
-                
+        this._elasticService.getRowsDefault(this.sizeOfPage).subscribe((res:Response)=>{
                 let data = this.elasticLogProcessing(res);
                 this.gridOptions.api.hideOverlay();
                 params.successCallback(data.slice());
-            });
-        }else{
-            this._elasticService.scrollElastic().subscribe((res:Response)=>{
-
-                let data2 = this.elasticLogProcessing(res);
-                this.gridOptions.api.hideOverlay();
-                params.successCallback(data2.slice());
-            });
-        }
+        });
     }
+
+    private search(input:string) {
+        this.gridOptions.api.showLoadingOverlay();
+
+        let internalSearch = (params)=> {
+            this._elasticService.search(input, this.sizeOfPage).subscribe((res:Response)=>{
+
+                let data3 = this.elasticLogProcessing(res);
+                this.gridOptions.api.hideOverlay();
+                params.successCallback(data3.slice());
+            });
+        };
+        let dataS= {
+            pageSize: this.sizeOfPage,
+            rowCount: -1,   //total number of rows unknown
+            overflowSize: 4,
+            //maxPagesInCache: 2, default is no limit
+            maxConcurrentRequests: 2,
+            getRows: internalSearch.bind(this)
+        };
+        this.gridOptions.api.setDatasource(dataS);
+    }
+
+
 
     private createColumnDefs() {
 
@@ -75,36 +91,28 @@ export class AppComponent {
 
         this.columnDefs = [
             {
-                headerName: '#', width: 30, checkboxSelection: false, suppressSorting: true,
-                suppressMenu: true, pinned: true, editable: true
+                headerName: '#', width: 30, checkboxSelection: false, pinned: true, editable: true
             },
             {
-                headerName: 'Time', width: 200, checkboxSelection: false, suppressSorting: true, field: "time",
-                suppressMenu: true, pinned: false
+                headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
             },
             {
-                headerName: 'L', width: 60, checkboxSelection: false, suppressSorting: true, field: "level",
-                suppressMenu: true, pinned: false, cellClass: rowColor
+                headerName: 'L', width: 60, checkboxSelection: false, field: "level", pinned: false, cellClass: rowColor
             },
             {
-                headerName: 'Type', width: 60, checkboxSelection: false, suppressSorting: true, field: "type",
-                suppressMenu: true, pinned: false
+                headerName: 'Type', width: 60, checkboxSelection: false, field: "type", pinned: false
             },
             {
-                headerName: 'Thread', width: 170, checkboxSelection: false, suppressSorting: true, field: "thread",
-                suppressMenu: true, pinned: false
+                headerName: 'Thread', width: 170, checkboxSelection: false, field: "thread", pinned: false
             },
             {
-                headerName: 'Message', width: 600, checkboxSelection: false, suppressSorting: true, field: "message",
-                suppressMenu: true, pinned: false
+                headerName: 'Message', width: 600, checkboxSelection: false, field: "message", pinned: false
             },
             {
-                headerName: 'Logger', width: 300, checkboxSelection: false, suppressSorting: true, field: "logger",
-                suppressMenu: true, pinned: false
+                headerName: 'Logger', width: 300, checkboxSelection: false, field: "logger", pinned: false
             },
             {
-                headerName: 'Host', width: 300, checkboxSelection: false, suppressSorting: true, field: "host",
-                suppressMenu: true, pinned: false
+                headerName: 'Host', width: 300, checkboxSelection: false, field: "host", pinned: false
             }
         ];
     }
@@ -186,10 +194,6 @@ export class AppComponent {
         console.log('onRowClicked: ' + $event.node.data.time);
     }
 
-    private onSearchInputChanged($event) {
-        this._elasticService.search($event.target.value);
-    }
-
     // here we use one generic event to handle all the column type events.
     // the method just prints the event name
     private onColumnEvent($event) {
@@ -201,7 +205,7 @@ export class AppComponent {
         let data = res.json();
 
         let id = data._scroll_id;
-        this._elasticService.scrollId = id;
+        this._elasticService.scroll.id = id;
 
         for (let logEntry of data.hits.hits) {
 
@@ -209,8 +213,23 @@ export class AppComponent {
             let time = logEntry._source['@timestamp'];
             let message = logEntry._source.message;
             let level = logEntry._source.level || logEntry._source.loglevel;
+            if(logEntry._source.level){
+                this._elasticService.fields.level="level";
+            }else{
+                this._elasticService.fields.level="loglevel";
+            }
             let thread = logEntry._source.thread_name || logEntry._source.threadid;
+            if(logEntry._source.thread_name){
+                this._elasticService.fields.thread="thread_name";
+            }else{
+                this._elasticService.fields.thread="threadid";
+            }
             let logger = logEntry._source.logger_name || logEntry._source.loggername;
+            if(logEntry._source.logger_name){
+                this._elasticService.fields.logger="logger_name";
+            }else{
+                this._elasticService.fields.logger="loggername";
+            }
             let host = logEntry._source.host;
 
             let logValue = {type, time, message, level, thread, logger, host};

@@ -9,14 +9,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("angular2/core");
 var http_1 = require('angular2/http');
-var core_2 = require("angular2/core");
 var ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
 var INDEX = "<kurento-*>";
 var ElasticService = (function () {
     function ElasticService(_http) {
         this._http = _http;
-        this.scrollId = "";
-        this.loading$ = new core_2.EventEmitter();
+        this.scroll = { id: "", search: false };
+        this.fields = {
+            level: "",
+            logger: "",
+            thread: ""
+        };
     }
     ElasticService.prototype.listIndices = function () {
         return this._http.get('http://localhost:9200/_stats/index,store')
@@ -77,9 +80,9 @@ var ElasticService = (function () {
     ElasticService.prototype.scrollElastic = function () {
         var body = {
             "scroll": "1m",
-            "scroll_id": this.scrollId
+            "scroll_id": this.scroll.id
         };
-        var url = ES_URL + '/_search/scroll';
+        var url = ES_URL + '_search/scroll';
         var requestoptions = new http_1.RequestOptions({
             method: http_1.RequestMethod.Post,
             url: url,
@@ -87,16 +90,46 @@ var ElasticService = (function () {
         });
         return this._http.request(new http_1.Request(requestoptions));
     };
-    ElasticService.prototype.search = function (value) {
+    ElasticService.prototype.getRowsDefault = function (sizeOfPage) {
+        if (!this.scroll.id && !this.scroll.search) {
+            return this.listAllLogs(sizeOfPage);
+        }
+        else {
+            return this.scrollElastic();
+        }
+    };
+    ElasticService.prototype.firstSearch = function (value, sizeOfPage) {
+        this.scroll.search = true;
         var body = {
-            "multi_match": {
-                "query": value,
-                "type": "best_fields",
-                "fields": "*",
-                "tie_breaker": 0.3,
-                "minimum_should_match": "30%"
-            }
+            "query": {
+                "multi_match": {
+                    "query": value,
+                    "type": "best_fields",
+                    "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread],
+                    "tie_breaker": 0.3,
+                    "minimum_should_match": "30%"
+                }
+            },
+            size: sizeOfPage,
+            sort: [
+                "_score"
+            ]
         };
+        var url = ES_URL + INDEX + '/_search?scroll=1m';
+        var requestoptions = new http_1.RequestOptions({
+            method: http_1.RequestMethod.Post,
+            url: url,
+            body: JSON.stringify(body)
+        });
+        return this._http.request(new http_1.Request(requestoptions));
+    };
+    ElasticService.prototype.search = function (value, sizeOfPage) {
+        if (!(this.scroll.id && this.scroll.search)) {
+            return this.firstSearch(value, sizeOfPage);
+        }
+        else if (this.scroll.id && this.scroll.search) {
+            return this.scrollElastic();
+        }
     };
     ElasticService = __decorate([
         core_1.Injectable(), 
