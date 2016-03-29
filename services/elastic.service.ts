@@ -17,13 +17,23 @@ const INDEX = "<kurento-*>";
 @Injectable()
 export class ElasticService {
 
+    scroll:{id:string,search:boolean}={id:"",search:false};         //Elasticsearch scroll indicator
 
-    scrollId:string="";         //Elasticsearch scroll indicator
+    fields:{
+        level:any,
+        logger:any,
+        thread:any
+    }={
+        level:"",
+        logger:"",
+        thread:""
+    };
 
     constructor(private _http: Http) {
+
     }
 
-    private listIndices() {                     //Unused
+    private listIndices() {                     //Never used
         return this._http.get('http://localhost:9200/_stats/index,store')
             .map(res=>res.json())
             .map(res => {
@@ -31,7 +41,7 @@ export class ElasticService {
             });
     }
 
-    public listAllLogs(sizeOfPage:number) {
+    private listAllLogs(sizeOfPage:number) {
         let url =ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
         let body= {
             sort: [
@@ -86,30 +96,61 @@ export class ElasticService {
     }
 
 
-    public scrollElastic () {
+    private scrollElastic () {
         let body = {
             "scroll" : "1m",
-            "scroll_id" : this.scrollId
+            "scroll_id" : this.scroll.id
         };
-        let url = ES_URL + '/_search/scroll';
+        let url = ES_URL + '_search/scroll';
         let requestoptions = new RequestOptions({
             method: RequestMethod.Post,
             url,
             body: JSON.stringify(body)
         });
-        return this._http.request(new Request(requestoptions))
+        return this._http.request(new Request(requestoptions));
 
     }
 
-    search(value:string): void {
+    public getRowsDefault(sizeOfPage:number) {
+        if(!this.scroll.id && !this.scroll.search){             //NOTE SCROLL ID! Elasticsearch scroll wouldn't work without it
+            return this.listAllLogs(sizeOfPage);
+        }else{
+            return this.scrollElastic();
+        }
+    }
+
+
+    private firstSearch(value:string, sizeOfPage:number) {
+        this.scroll.search=true;
         let body = {
-            "multi_match": {
-                "query":value,
-                "type":"best_fields",
-                "fields": "*",
-                "tie_breaker":0.3,
-                "minimum_should_match":"30%"
-            }
+            "query":{
+                "multi_match": {
+                    "query":value,
+                        "type":"best_fields",
+                        "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread],         //Not filter by time: parsing user input would be required
+                        "tie_breaker":0.3,
+                        "minimum_should_match":"30%"
+                }
+            },
+            size:sizeOfPage,
+            sort:[
+                "_score"
+            ]
+        };
+        let url = ES_URL + INDEX + '/_search?scroll=1m';
+        let requestoptions = new RequestOptions({
+            method: RequestMethod.Post,
+            url,
+            body: JSON.stringify(body)
+        });
+        return this._http.request(new Request(requestoptions));
+    }
+
+    public search(value:string, sizeOfPage:number){
+        if(!(this.scroll.id && this.scroll.search)){
+            return this.firstSearch(value,sizeOfPage);
+        }else if (this.scroll.id && this.scroll.search){
+            return this.scrollElastic();
         }
     }
 }
