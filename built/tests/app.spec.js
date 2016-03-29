@@ -1,4 +1,3 @@
-"use strict";
 var testing_1 = require('angular2/testing');
 var app_component_1 = require("../component/app.component");
 var core_1 = require("angular2/core");
@@ -624,7 +623,7 @@ var FakeElasticService = (function () {
         return list;
     };
     return FakeElasticService;
-}());
+})();
 testing_1.describe('Test component', function () {
     testing_1.it('Should construct a component', testing_1.injectAsync([elastic_service_1.ElasticService], function (service) {
         var app = new app_component_1.AppComponent(service);

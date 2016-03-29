@@ -85,6 +85,7 @@ export class ElasticService {
         return this._http.request(new Request(requestoptions));
     }
 
+
     public scrollElastic () {
         let body = {
             "scroll" : "1m",
@@ -100,4 +101,15 @@ export class ElasticService {
 
     }
 
+    search(value:string): void {
+        let body = {
+            "multi_match": {
+                "query":value,
+                "type":"best_fields",
+                "fields": "*",
+                "tie_breaker":0.3,
+                "minimum_should_match":"30%"
+            }
+        }
+    }
 }

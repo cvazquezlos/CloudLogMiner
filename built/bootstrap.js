@@ -1,4 +1,3 @@
-"use strict";
 var browser_1 = require('angular2/platform/browser');
 var app_component_1 = require('./component/app.component');
 var elastic_service_1 = require('./services/elastic.service');

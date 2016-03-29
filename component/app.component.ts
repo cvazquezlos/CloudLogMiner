@@ -186,8 +186,8 @@ export class AppComponent {
         console.log('onRowClicked: ' + $event.node.data.time);
     }
 
-    private onQuickFilterChanged($event) {
-        this.gridOptions.api.setQuickFilter($event.target.value);
+    private onSearchInputChanged($event) {
+        this._elasticService.search($event.target.value);
     }
 
     // here we use one generic event to handle all the column type events.

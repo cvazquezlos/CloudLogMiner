@@ -1,4 +1,3 @@
-"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -151,8 +150,8 @@ var AppComponent = (function () {
     AppComponent.prototype.onRowClicked = function ($event) {
         console.log('onRowClicked: ' + $event.node.data.time);
     };
-    AppComponent.prototype.onQuickFilterChanged = function ($event) {
-        this.gridOptions.api.setQuickFilter($event.target.value);
+    AppComponent.prototype.onSearchInputChanged = function ($event) {
+        this._elasticService.search($event.target.value);
     };
     AppComponent.prototype.onColumnEvent = function ($event) {
         console.log('onColumnEvent: ' + $event);
@@ -189,6 +188,6 @@ var AppComponent = (function () {
         __metadata('design:paramtypes', [elastic_service_1.ElasticService])
     ], AppComponent);
     return AppComponent;
-}());
+})();
 exports.AppComponent = AppComponent;
 //# sourceMappingURL=app.component.js.map
