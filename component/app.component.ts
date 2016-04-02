@@ -19,45 +19,31 @@ export class AppComponent {
     private columnDefs: any[];
     private rowCount: string;
 
-    private sizeOfPage=100;     //has to be consistent with http call and datasource
-
-    dataSource= {
-        pageSize: this.sizeOfPage,
-        rowCount: -1,   //total number of rows unknown
-        overflowSize: 4,
-        //maxPagesInCache: 2, default is no limit
-        maxConcurrentRequests: 2,
-        getRows: this.getRows.bind(this)      //Grid will dynamically use this function to retrieve data
-
-    };
-
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{
-            virtualPaging : true,
-            datasource : this.dataSource,
-            enableServerSideSorting: true
+            //enableServerSideSorting: true
         };
         this.rowData=[];
-        //this.createRowData();  -- UPDATED WITH VIRTUAL PAGING
+        this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
     }
 
-    private getRows(params:any){
-        this.gridOptions.api.showLoadingOverlay();
-        this._elasticService.getRowsDefault(this.sizeOfPage).subscribe((res:Response)=>{
-                let data = this.elasticLogProcessing(res);
+    private createRowData(){
+        //this.gridOptions.api.showLoadingOverlay();
+        this._elasticService.getRowsDefault().subscribe((res)=>{
                 this.gridOptions.api.hideOverlay();
-                params.successCallback(data.slice());
+                console.log(res);
+                this.rowData=res.slice();
         });
     }
-
+/*
     private search(input:string) {
         this.gridOptions.api.showLoadingOverlay();
 
         let internalSearch = (params)=> {
-            this._elasticService.search(input, this.sizeOfPage).subscribe((res:Response)=>{
+            this._elasticService.search(input).subscribe((res:Response)=>{
 
                 let data3 = this.elasticLogProcessing(res);
                 this.gridOptions.api.hideOverlay();
@@ -74,7 +60,7 @@ export class AppComponent {
         };
         this.gridOptions.api.setDatasource(dataS);
     }
-
+*/
 
 
     private createColumnDefs() {
@@ -198,45 +184,6 @@ export class AppComponent {
     // the method just prints the event name
     private onColumnEvent($event) {
         console.log('onColumnEvent: ' + $event);
-    }
-
-    elasticLogProcessing(res: Response) {
-        let rowData=[];
-        let data = res.json();
-
-        let id = data._scroll_id;
-        this._elasticService.scroll.id = id;
-
-        for (let logEntry of data.hits.hits) {
-
-            let type = logEntry._type;
-            let time = logEntry._source['@timestamp'];
-            let message = logEntry._source.message;
-            let level = logEntry._source.level || logEntry._source.loglevel;
-            if(logEntry._source.level){
-                this._elasticService.fields.level="level";
-            }else{
-                this._elasticService.fields.level="loglevel";
-            }
-            let thread = logEntry._source.thread_name || logEntry._source.threadid;
-            if(logEntry._source.thread_name){
-                this._elasticService.fields.thread="thread_name";
-            }else{
-                this._elasticService.fields.thread="threadid";
-            }
-            let logger = logEntry._source.logger_name || logEntry._source.loggername;
-            if(logEntry._source.logger_name){
-                this._elasticService.fields.logger="logger_name";
-            }else{
-                this._elasticService.fields.logger="loggername";
-            }
-            let host = logEntry._source.host;
-
-            let logValue = {type, time, message, level, thread, logger, host};
-
-            rowData.push(logValue);
-        }
-        return rowData;
     }
 
 }
