@@ -3,9 +3,8 @@
  */
 
 //Removed map.d import as no necessary
-import {Injectable} from "angular2/core";
+import {Injectable/*,EventEmitter*/} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
-import {EventEmitter} from "angular2/core";
 import 'rxjs/add/operator/map'
 
 /*
@@ -182,7 +181,7 @@ export class ElasticService {
         }
     }
 
-    elasticLogProcessing(logEntry: json) {let type = logEntry._type;
+    elasticLogProcessing(logEntry: any) {let type = logEntry._type;
         let time = logEntry._source['@timestamp'];
         let message = logEntry._source.message;
         let level = logEntry._source.level || logEntry._source.loglevel;

@@ -2,11 +2,11 @@ import {Component} from 'angular2/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
-import {ElasticService} from "../service/elastic.service";
+import {ElasticService} from "./shared/elastic.service";
 
 @Component({
     selector: 'my-app',
-    templateUrl: 'component/appcomponent.html',
+    templateUrl: './app/appcomponent.html',
     directives: [AgGridNg2],
     //providers: HTTP_PROVIDERS,
     styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
@@ -33,34 +33,34 @@ export class AppComponent {
     private createRowData(){
         //this.gridOptions.api.showLoadingOverlay();
         this._elasticService.getRowsDefault().subscribe((res)=>{
-                this.gridOptions.api.hideOverlay();
-                console.log(res);
-                this.rowData=res.slice();
+            this.gridOptions.api.hideOverlay();
+            console.log(res);
+            this.rowData=res.slice();
         });
     }
-/*
-    private search(input:string) {
-        this.gridOptions.api.showLoadingOverlay();
+    /*
+     private search(input:string) {
+     this.gridOptions.api.showLoadingOverlay();
 
-        let internalSearch = (params)=> {
-            this._elasticService.search(input).subscribe((res:Response)=>{
+     let internalSearch = (params)=> {
+     this._elasticService.search(input).subscribe((res:Response)=>{
 
-                let data3 = this.elasticLogProcessing(res);
-                this.gridOptions.api.hideOverlay();
-                params.successCallback(data3.slice());
-            });
-        };
-        let dataS= {
-            pageSize: this.sizeOfPage,
-            rowCount: -1,   //total number of rows unknown
-            overflowSize: 4,
-            //maxPagesInCache: 2, default is no limit
-            maxConcurrentRequests: 2,
-            getRows: internalSearch.bind(this)
-        };
-        this.gridOptions.api.setDatasource(dataS);
-    }
-*/
+     let data3 = this.elasticLogProcessing(res);
+     this.gridOptions.api.hideOverlay();
+     params.successCallback(data3.slice());
+     });
+     };
+     let dataS= {
+     pageSize: this.sizeOfPage,
+     rowCount: -1,   //total number of rows unknown
+     overflowSize: 4,
+     //maxPagesInCache: 2, default is no limit
+     maxConcurrentRequests: 2,
+     getRows: internalSearch.bind(this)
+     };
+     this.gridOptions.api.setDatasource(dataS);
+     }
+     */
 
 
     private createColumnDefs() {
@@ -107,7 +107,7 @@ export class AppComponent {
         if (this.gridOptions.api && this.rowData) {
             let model = this.gridOptions.api.getModel();
             let totalRows = this.rowData.length;
-            let processedRows = model.getVirtualRowCount();
+            let processedRows = model.getRowCount();
             this.rowCount = processedRows.toLocaleString() + ' / ' + totalRows.toLocaleString();
         }
     }
@@ -187,3 +187,4 @@ export class AppComponent {
     }
 
 }
+
