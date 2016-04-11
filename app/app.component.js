@@ -40,7 +40,9 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     this._elasticService.getRowsDefault().subscribe(function (res) {
                         _this.gridOptions.api.hideOverlay();
                         console.log(res);
-                        _this.rowData = res.slice();
+                        console.log(_this.rowData);
+                        _this.rowData = _this.rowData.concat(res);
+                        _this.rowData = _this.rowData.slice();
                     });
                 };
                 /*

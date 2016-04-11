@@ -5,7 +5,10 @@
 //Removed map.d import as no necessary
 import {Injectable/*,EventEmitter*/} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
-import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/operator/concat';
+import {Observable} from "rxjs/Observable";
 
 /*
  const ES_URL = 'http://127.0.0.1:9200/';
@@ -55,32 +58,34 @@ export class ElasticService {
             url,
             body: JSON.stringify(body)
         });
+        let url2 = ES_URL + '_search/scroll';
+        let requestoptions2 = new RequestOptions({
+            method: RequestMethod.Post
+        });
+        requestoptions2.body = JSON.stringify({
+            "scroll": "1m",
+            "scroll_id": this.scroll.id
+        });
+        requestoptions2.url= ES_URL + '_search/scroll';
 
-        return this._http.request(new Request(requestoptions))
+        let first$ = this._http.request(new Request(requestoptions))
             .map((responseData)=> { return responseData.json()})
-            .map((answer)=>{
-                let result: Array<any>=[];
-                if(answer) {
-                    for(let a of answer.hits.hits){
-                        let b=this.elasticLogProcessing(a);
-                        result.push(b);
-                        this.nResults++;
-                        if (this.nResults > this.maxResults) {
-                            console.log("Reached max results=" + this.maxResults + ". Aborting log download");
-                            return;
-                        }
-                    }
-                }
+            .map((answer)=> {
                 let id = answer._scroll_id;
                 this.scroll.id = id;
-                let url2 = ES_URL + '_search/scroll';
-
-                let esquery = { scroll: '1m', scroll_id: id }
-
-                this.listAllLogs(url2, esquery);
-
-                return result;
+                answer=this.mapLogs(answer);
+                console.log(answer);
+                requestoptions2.body=JSON.stringify({
+                    "scroll": "1m",
+                    "scroll_id": this.scroll.id
+                });
+                return answer;
             });
+
+        let second$ = this._http.request(new Request(requestoptions2))
+            .map((res: Response) => {res.json(); console.log(res)})
+            .map((answ=>{this.mapLogs(answ)}));
+        return Observable.concat(first$,second$);
     }
 
 
@@ -153,10 +158,10 @@ export class ElasticService {
             "query":{
                 "multi_match": {
                     "query":value,
-                        "type":"best_fields",
-                        "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread],         //Not filter by time: parsing user input would be required
-                        "tie_breaker":0.3,
-                        "minimum_should_match":"30%"
+                    "type":"best_fields",
+                    "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread],         //Not filter by time: parsing user input would be required
+                    "tie_breaker":0.3,
+                    "minimum_should_match":"30%"
                 }
             },
             size:sizeOfPage,
@@ -179,6 +184,23 @@ export class ElasticService {
         }else if (this.scroll.id && this.scroll.search){
             return this.scrollElastic();
         }
+    }
+
+    mapLogs(answer) {
+        let result: Array<any>=[];
+        if(answer) {
+            for(let a of answer.hits.hits){
+                let b=this.elasticLogProcessing(a);
+                result.push(b);
+                this.nResults++;
+                if (this.nResults > this.maxResults) {
+                    console.log("Reached max results=" + this.maxResults + ". Aborting log download");
+                    return;
+                }
+            }
+        }
+
+        return result;
     }
 
     elasticLogProcessing(logEntry: any) {let type = logEntry._type;
