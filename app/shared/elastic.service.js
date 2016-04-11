@@ -1,7 +1,9 @@
 /**
  * Created by silvia on 26/2/16.
  */
-System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxjs/add/operator/mergeMap', 'rxjs/operator/concat', "rxjs/Observable"], function(exports_1) {
+System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxjs/add/operator/mergeMap'], function(exports_1, context_1) {
+    "use strict";
+    var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11,7 +13,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1, Observable_1;
+    var core_1, http_1;
     var ES_URL, INDEX, ElasticService;
     return {
         setters:[
@@ -22,11 +24,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                 http_1 = http_1_1;
             },
             function (_1) {},
-            function (_2) {},
-            function (_3) {},
-            function (Observable_1_1) {
-                Observable_1 = Observable_1_1;
-            }],
+            function (_2) {}],
         execute: function() {
             /*
              const ES_URL = 'http://127.0.0.1:9200/';
@@ -69,23 +67,32 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         "scroll_id": this.scroll.id
                     });
                     requestoptions2.url = ES_URL + '_search/scroll';
-                    var first$ = this._http.request(new http_1.Request(requestoptions))
-                        .map(function (responseData) { return responseData.json(); })
+                    var results = new core_1.EventEmitter();
+                    this._http.request(new http_1.Request(requestoptions))
+                        .map(function (responseData) { return responseData.json(); }) //Important include 'return' keyword
                         .map(function (answer) {
                         var id = answer._scroll_id;
                         _this.scroll.id = id;
                         answer = _this.mapLogs(answer);
-                        console.log(answer);
+                        return answer;
+                    })
+                        .subscribe(function (d) {
+                        results.emit(d);
                         requestoptions2.body = JSON.stringify({
                             "scroll": "1m",
                             "scroll_id": _this.scroll.id
                         });
-                        return answer;
+                        _this._http.request(new http_1.Request(requestoptions2))
+                            .map(function (res) { return res.json(); })
+                            .map(function (answ) {
+                            answ = _this.mapLogs(answ);
+                            return answ;
+                        })
+                            .subscribe(function (e) {
+                            results.emit(e);
+                        });
                     });
-                    var second$ = this._http.request(new http_1.Request(requestoptions2))
-                        .map(function (res) { res.json(); console.log(res); })
-                        .map((function (answ) { _this.mapLogs(answ); }));
-                    return Observable_1.Observable.concat(first$, second$);
+                    return results;
                 };
                 ElasticService.prototype.scrollElastic = function () {
                     var body = {
@@ -184,11 +191,6 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                             var a = _a[_i];
                             var b = this.elasticLogProcessing(a);
                             result.push(b);
-                            this.nResults++;
-                            if (this.nResults > this.maxResults) {
-                                console.log("Reached max results=" + this.maxResults + ". Aborting log download");
-                                return;
-                            }
                         }
                     }
                     return result;
@@ -227,7 +229,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                     __metadata('design:paramtypes', [http_1.Http])
                 ], ElasticService);
                 return ElasticService;
-            })();
+            }());
             exports_1("ElasticService", ElasticService);
         }
     }

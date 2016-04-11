@@ -1,6 +1,4 @@
-System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -39,8 +37,6 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     //this.gridOptions.api.showLoadingOverlay();
                     this._elasticService.getRowsDefault().subscribe(function (res) {
                         _this.gridOptions.api.hideOverlay();
-                        console.log(res);
-                        console.log(_this.rowData);
                         _this.rowData = _this.rowData.concat(res);
                         _this.rowData = _this.rowData.slice();
                     });
@@ -183,7 +179,7 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     __metadata('design:paramtypes', [elastic_service_1.ElasticService])
                 ], AppComponent);
                 return AppComponent;
-            }());
+            })();
             exports_1("AppComponent", AppComponent);
         }
     }

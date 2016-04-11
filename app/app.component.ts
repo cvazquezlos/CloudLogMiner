@@ -34,8 +34,6 @@ export class AppComponent {
         //this.gridOptions.api.showLoadingOverlay();
         this._elasticService.getRowsDefault().subscribe((res)=>{
             this.gridOptions.api.hideOverlay();
-            console.log(res);
-            console.log(this.rowData);
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
         });

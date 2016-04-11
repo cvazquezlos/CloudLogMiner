@@ -3,12 +3,10 @@
  */
 
 //Removed map.d import as no necessary
-import {Injectable/*,EventEmitter*/} from "angular2/core";
+import {Injectable,EventEmitter} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
-import 'rxjs/operator/concat';
-import {Observable} from "rxjs/Observable";
 
 /*
  const ES_URL = 'http://127.0.0.1:9200/';
@@ -68,24 +66,34 @@ export class ElasticService {
         });
         requestoptions2.url= ES_URL + '_search/scroll';
 
-        let first$ = this._http.request(new Request(requestoptions))
-            .map((responseData)=> { return responseData.json()})
+        let results: EventEmitter<any> = new EventEmitter<any>();
+
+        this._http.request(new Request(requestoptions))
+            .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
             .map((answer)=> {
                 let id = answer._scroll_id;
                 this.scroll.id = id;
                 answer=this.mapLogs(answer);
-                console.log(answer);
+                return answer;
+            })
+            .subscribe(d=> {
+                results.emit(d);
                 requestoptions2.body=JSON.stringify({
                     "scroll": "1m",
                     "scroll_id": this.scroll.id
                 });
-                return answer;
+                this._http.request(new Request(requestoptions2))
+                    .map((res: Response) => {return res.json()})
+                    .map((answ)=>{
+                        answ=this.mapLogs(answ);
+                        return answ;
+                    })
+                .subscribe(e=> {
+                    results.emit(e);
+                })
             });
 
-        let second$ = this._http.request(new Request(requestoptions2))
-            .map((res: Response) => {res.json(); console.log(res)})
-            .map((answ=>{this.mapLogs(answ)}));
-        return Observable.concat(first$,second$);
+        return results;
     }
 
 
@@ -186,20 +194,14 @@ export class ElasticService {
         }
     }
 
-    mapLogs(answer) {
-        let result: Array<any>=[];
+    mapLogs(answer): any[] {
+        let result: any[]=[];
         if(answer) {
             for(let a of answer.hits.hits){
                 let b=this.elasticLogProcessing(a);
                 result.push(b);
-                this.nResults++;
-                if (this.nResults > this.maxResults) {
-                    console.log("Reached max results=" + this.maxResults + ". Aborting log download");
-                    return;
-                }
             }
         }
-
         return result;
     }
 
