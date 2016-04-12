@@ -50,66 +50,39 @@ export class ElasticService {
             });
     }
 
-    private listAllLogs(url:string, body:any) {
+    private listAllLogs(url:string, body:any, emitter):any {
         let requestoptions = new RequestOptions({
             method: RequestMethod.Post,
             url,
             body: JSON.stringify(body)
         });
         let url2 = ES_URL + '_search/scroll';
-        let requestoptions2 = new RequestOptions({
-            method: RequestMethod.Post
-        });
-        requestoptions2.body = JSON.stringify({
-            "scroll": "1m",
-            "scroll_id": this.scroll.id
-        });
-        requestoptions2.url= ES_URL + '_search/scroll';
 
-        let results: EventEmitter<any> = new EventEmitter<any>();
 
         this._http.request(new Request(requestoptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
             .map((answer)=> {
                 let id = answer._scroll_id;
-                this.scroll.id = id;
+                this.scroll.id = id;            //id has to be assigned before mapLogs, which only returns the hits.
                 answer=this.mapLogs(answer);
                 return answer;
             })
-            .subscribe(d=> {
-                results.emit(d);
-                requestoptions2.body=JSON.stringify({
-                    "scroll": "1m",
-                    "scroll_id": this.scroll.id
-                });
-                this._http.request(new Request(requestoptions2))
-                    .map((res: Response) => {return res.json()})
-                    .map((answ)=>{
-                        answ=this.mapLogs(answ);
-                        return answ;
-                    })
-                .subscribe(e=> {
-                    results.emit(e);
-                })
+            .subscribe(batch=> {
+                this.nResults=this.nResults+this.sizeOfPage;
+                emitter.emit(batch);
+
+                if(this.nResults<this.maxResults){
+                    let body2 = {
+                        "scroll" : "1m",
+                        "scroll_id" : this.scroll.id
+                    };
+                    this.listAllLogs(url2,body2,emitter);
+                    return;
+                }
+
             });
 
-        return results;
-    }
-
-
-    private scrollElastic () {
-        let body = {
-            "scroll" : "1m",
-            "scroll_id" : this.scroll.id
-        };
-        let url = ES_URL + '_search/scroll';
-        let requestoptions = new RequestOptions({
-            method: RequestMethod.Post,
-            url,
-            body: JSON.stringify(body)
-        });
-        return this._http.request(new Request(requestoptions));
-
+        return;
     }
 
     public getRowsDefault() {            //NOTE SCROLL ID! Elasticsearch scroll wouldn't work without it
@@ -156,8 +129,11 @@ export class ElasticService {
             //The following are the fields that are requested from each log. They should be consistent with the definition of logValue
             //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
         };
+        let results: EventEmitter<any> = new EventEmitter<any>();
 
-        return this.listAllLogs(url,body);
+
+        this.listAllLogs(url,body,results);
+        return results;
     }
 
     private firstSearch(value:string, sizeOfPage:number) {

@@ -51,7 +51,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         return Object.getOwnPropertyNames(res.indices);
                     });
                 };
-                ElasticService.prototype.listAllLogs = function (url, body) {
+                ElasticService.prototype.listAllLogs = function (url, body, emitter) {
                     var _this = this;
                     var requestoptions = new http_1.RequestOptions({
                         method: http_1.RequestMethod.Post,
@@ -59,53 +59,27 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         body: JSON.stringify(body)
                     });
                     var url2 = ES_URL + '_search/scroll';
-                    var requestoptions2 = new http_1.RequestOptions({
-                        method: http_1.RequestMethod.Post
-                    });
-                    requestoptions2.body = JSON.stringify({
-                        "scroll": "1m",
-                        "scroll_id": this.scroll.id
-                    });
-                    requestoptions2.url = ES_URL + '_search/scroll';
-                    var results = new core_1.EventEmitter();
                     this._http.request(new http_1.Request(requestoptions))
                         .map(function (responseData) { return responseData.json(); }) //Important include 'return' keyword
                         .map(function (answer) {
                         var id = answer._scroll_id;
-                        _this.scroll.id = id;
+                        _this.scroll.id = id; //id has to be assigned before mapLogs, which only returns the hits.
                         answer = _this.mapLogs(answer);
                         return answer;
                     })
-                        .subscribe(function (d) {
-                        results.emit(d);
-                        requestoptions2.body = JSON.stringify({
-                            "scroll": "1m",
-                            "scroll_id": _this.scroll.id
-                        });
-                        _this._http.request(new http_1.Request(requestoptions2))
-                            .map(function (res) { return res.json(); })
-                            .map(function (answ) {
-                            answ = _this.mapLogs(answ);
-                            return answ;
-                        })
-                            .subscribe(function (e) {
-                            results.emit(e);
-                        });
+                        .subscribe(function (batch) {
+                        _this.nResults = _this.nResults + _this.sizeOfPage;
+                        emitter.emit(batch);
+                        if (_this.nResults < _this.maxResults) {
+                            var body2 = {
+                                "scroll": "1m",
+                                "scroll_id": _this.scroll.id
+                            };
+                            _this.listAllLogs(url2, body2, emitter);
+                            return;
+                        }
                     });
-                    return results;
-                };
-                ElasticService.prototype.scrollElastic = function () {
-                    var body = {
-                        "scroll": "1m",
-                        "scroll_id": this.scroll.id
-                    };
-                    var url = ES_URL + '_search/scroll';
-                    var requestoptions = new http_1.RequestOptions({
-                        method: http_1.RequestMethod.Post,
-                        url: url,
-                        body: JSON.stringify(body)
-                    });
-                    return this._http.request(new http_1.Request(requestoptions));
+                    return;
                 };
                 ElasticService.prototype.getRowsDefault = function () {
                     var url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
@@ -149,7 +123,9 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         },
                         size: this.sizeOfPage
                     };
-                    return this.listAllLogs(url, body);
+                    var results = new core_1.EventEmitter();
+                    this.listAllLogs(url, body, results);
+                    return results;
                 };
                 ElasticService.prototype.firstSearch = function (value, sizeOfPage) {
                     this.scroll.search = true;
