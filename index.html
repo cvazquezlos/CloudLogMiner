@@ -1,58 +1,49 @@
 <html>
-
-<head>
+  <head>
     <title>Cloud Log Miner</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">    
+    <link rel="stylesheet" href="styles.css">
     <!-- 1. Load libraries -->
     <!-- IE required polyfills, in this exact order -->
     <script src="node_modules/es6-shim/es6-shim.min.js"></script>
     <script src="node_modules/systemjs/dist/system-polyfills.js"></script>
-
+    <script src="node_modules/angular2/es6/dev/src/testing/shims_for_IE.js"></script>
     <script src="node_modules/angular2/bundles/angular2-polyfills.js"></script>
     <script src="node_modules/systemjs/dist/system.src.js"></script>
     <script src="node_modules/rxjs/bundles/Rx.js"></script>
     <script src="node_modules/angular2/bundles/angular2.dev.js"></script>
     <script src="node_modules/angular2/bundles/http.dev.js"></script>
 
-
-    <!-- ag-grid CSS -->
-    <!-- In your build, you will probably want to include the css in your bundle. -->
-    <!-- To do this you will use a CSS Loader. How to do this is not an ag-Grid -->
-    <!-- problem, so I've not included how to do it here. For simplicity, and -->
-    <!-- explicitness, the CSS files are loaded in directly here. -->
     <link href="node_modules/ag-grid/dist/styles/ag-grid.css" rel="stylesheet" />
     <link href="node_modules/ag-grid/dist/styles/theme-fresh.css" rel="stylesheet" />
 
-    <link href="style.css" rel="stylesheet"/>
-
     <!-- 2. Configure SystemJS -->
     <script>
-        System.config({
-            defaultJSExtensions: true,
-            packages: {
-                lib: {
-                    format: 'register'
-                },
-                'ag-grid-ng2': {},
-                'ag-grid': {}
+      System.config({
+        packages: {
+          app: {
+            format: 'register',
+            defaultExtension: 'js'
+          },
+            'ag-grid-ng2': {
+                defaultExtension: "js"
             },
-            map: {
-                'angular2': 'node_modules/angular2',
-                'rxjs': 'node_modules/rxjs',
-                'ag-grid-ng2': 'node_modules/ag-grid-ng2',
-                'ag-grid': 'node_modules/ag-grid'
+            'ag-grid': {
+                defaultExtension: "js"
             }
-        });
-
-        System.import('built/bootstrap')
-                .then(null, console.error.bind(console));
+        },
+        map: {
+          'ag-grid-ng2': 'node_modules/ag-grid-ng2',
+          'ag-grid': 'node_modules/ag-grid'
+        }
+      });
+      System.import('app/main')
+            .then(null, console.error.bind(console));
     </script>
-
-</head>
-
-<!-- 3. Display the application -->
-<body>
-<my-app>Loading...</my-app>
-</body>
-
+  </head>
+  <!-- 3. Display the application -->
+  <body>
+    <h1>Cloud Log Miner</h1>
+    <my-app>Loading...</my-app>
+  </body>
 </html>

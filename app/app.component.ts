@@ -2,11 +2,11 @@ import {Component} from 'angular2/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
-import {ElasticService} from "../services/elastic.service";
+import {ElasticService} from "./shared/elastic.service";
 
 @Component({
     selector: 'my-app',
-    templateUrl: 'component/appcomponent.html',
+    templateUrl: './app/appcomponent.html',
     directives: [AgGridNg2],
     //providers: HTTP_PROVIDERS,
     styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
@@ -18,61 +18,57 @@ export class AppComponent {
     private rowData: any[];
     private columnDefs: any[];
     private rowCount: string;
-
-    private sizeOfPage=100;     //has to be consistent with http call and datasource
-
-    dataSource= {
-        pageSize: this.sizeOfPage,
-        rowCount: -1,   //total number of rows unknown
-        overflowSize: 4,
-        //maxPagesInCache: 2, default is no limit
-        maxConcurrentRequests: 2,
-        getRows: this.getRows.bind(this)      //Grid will dynamically use this function to retrieve data
-
-    };
+    private showLoadMore: boolean;
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{
-            virtualPaging : true,
-            datasource : this.dataSource,
-            enableServerSideSorting: true
+            //enableServerSideSorting: true
         };
         this.rowData=[];
-        //this.createRowData();  -- UPDATED WITH VIRTUAL PAGING
+        this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
+        this.showLoadMore=true;
     }
 
-    public getRows(params:any){
-        this.gridOptions.api.showLoadingOverlay();
-        this._elasticService.getRowsDefault(this.sizeOfPage).subscribe((res:Response)=>{
-                let data = this.elasticLogProcessing(res);
+    private createRowData(){
+        //this.gridOptions.api.showLoadingOverlay();
+        this._elasticService.getRowsDefault()
+            .subscribe((res)=>{
                 this.gridOptions.api.hideOverlay();
-                params.successCallback(data.slice());
-        });
+                this.rowData=this.rowData.concat(res);
+                this.rowData=this.rowData.slice();
+            },(err)=>console.log("Error in default fetching"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore=true;
+            });
     }
 
     private search(input:string) {
-        this.gridOptions.api.showLoadingOverlay();
-
-        let internalSearch = (params)=> {
-            this._elasticService.search(input, this.sizeOfPage).subscribe((res:Response)=>{
-
-                let data3 = this.elasticLogProcessing(res);
-                this.gridOptions.api.hideOverlay();
-                params.successCallback(data3.slice());
+        //this.gridOptions.api.showLoadingOverlay();
+        this.rowData=[];    //RESTART ROW DATA or it will be append after default rows
+        this._elasticService.search(input).subscribe((res)=>{
+            this.gridOptions.api.hideOverlay();
+            this.rowData=this.rowData.concat(res);
+            this.rowData=this.rowData.slice();
+        }, (err)=>console.log("Error in search"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore=true;
             });
-        };
-        let dataS= {
-            pageSize: this.sizeOfPage,
-            rowCount: -1,   //total number of rows unknown
-            overflowSize: 4,
-            //maxPagesInCache: 2, default is no limit
-            maxConcurrentRequests: 2,
-            getRows: internalSearch.bind(this)
-        };
-        this.gridOptions.api.setDatasource(dataS);
+
+    }
+
+    private loadMore() {
+        let r = this.rowCount.split("/");
+        let lastLog = this.rowData[parseInt(r[0])-1];
+        this._elasticService.loadMore(lastLog)/*.subscribe((res)=>{
+            this.gridOptions.api.hideOverlay();
+            this.rowData=this.rowData.concat(res);
+            this.rowData=this.rowData.slice();
+        });*/
     }
 
     public createColumnDefs() {
@@ -118,7 +114,7 @@ export class AppComponent {
         if (this.gridOptions.api && this.rowData) {
             let model = this.gridOptions.api.getModel();
             let totalRows = this.rowData.length;
-            let processedRows = model.getVirtualRowCount();
+            let processedRows = model.getRowCount();
             this.rowCount = processedRows.toLocaleString() + ' / ' + totalRows.toLocaleString();
         }
     }
@@ -198,47 +194,5 @@ export class AppComponent {
         console.log('onColumnEvent: ' + $event);
     }
 
-    private elasticLogProcessing(res: Response) {
-        let rowData=[];
-        let data = res.json();
-
-        let id = data._scroll_id;
-        this._elasticService.scroll.id = id;
-
-        for (let logEntry of data.hits.hits) {
-
-            let type = logEntry._type;
-            let time = logEntry._source['@timestamp'];
-            let message = logEntry._source.message;
-            let level = logEntry._source.level || logEntry._source.loglevel;
-            if(logEntry._source.level){
-                this._elasticService.fields.level="level";
-            }else{
-                this._elasticService.fields.level="loglevel";
-            }
-            let thread = logEntry._source.thread_name || logEntry._source.threadid;
-            if(logEntry._source.thread_name){
-                this._elasticService.fields.thread="thread_name";
-            }else{
-                this._elasticService.fields.thread="threadid";
-            }
-            let logger = logEntry._source.logger_name || logEntry._source.loggername;
-            if(logEntry._source.logger_name){
-                this._elasticService.fields.logger="logger_name";
-            }else{
-                this._elasticService.fields.logger="loggername";
-            }
-            let host = logEntry._source.host;
-
-            let logValue = {type, time, message, level, thread, logger, host};
-
-            rowData.push(logValue);
-        }
-        return rowData;
-    }
-
-    public getGridOptions(){
-        return this.gridOptions;
-    }
-
 }
+

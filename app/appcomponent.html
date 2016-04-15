@@ -85,6 +85,7 @@
                      (columnResized)="onColumnEvent($event)"
                      (columnPinnedCountChanged)="onColumnEvent($event)">
         </ag-grid-ng2>
+        <div><button *ngIf="showLoadMore" (click)="loadMore()" style="margin-left:40%">Load more</button></div>
     </div>
 
 </div>
