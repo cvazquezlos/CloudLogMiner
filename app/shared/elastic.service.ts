@@ -6,7 +6,6 @@
 import {Injectable,EventEmitter} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
 
 /*
  const ES_URL = 'http://127.0.0.1:9200/';
@@ -32,11 +31,13 @@ export class ElasticService {
         thread:""
     };
 
-    private sizeOfPage:number = 100;
+    private sizeOfPage:number = 50;
 
     private nResults:number = 0;
 
-    private maxResults:number = 500;
+    private maxResults:number = 300;
+
+    private currentRequest:RequestOptions = new RequestOptions();
 
     constructor(private _http: Http) {
 
@@ -50,16 +51,9 @@ export class ElasticService {
             });
     }
 
-    private listAllLogs(url:string, body:any, emitter):any {
-        let requestoptions = new RequestOptions({
-            method: RequestMethod.Post,
-            url,
-            body: JSON.stringify(body)
-        });
-        let url2 = ES_URL + '_search/scroll';
+    private listAllLogs(requestOptions:any, emitter):any {
 
-
-        this._http.request(new Request(requestoptions))
+        this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
             .map((answer)=> {
                 let id = answer._scroll_id;
@@ -70,14 +64,22 @@ export class ElasticService {
             .subscribe(batch=> {
                 this.nResults=this.nResults+this.sizeOfPage;
                 emitter.emit(batch);
-
                 if(this.nResults<this.maxResults){
                     let body2 = {
                         "scroll" : "1m",
                         "scroll_id" : this.scroll.id
                     };
-                    this.listAllLogs(url2,body2,emitter);
+                    let url2 = ES_URL + '_search/scroll';
+                    let requestOptions2 = new RequestOptions({
+                        method: RequestMethod.Post,
+                        url: url2,
+                        body: JSON.stringify(body2)
+                    });
+                    this.listAllLogs(requestOptions2, emitter);
                     return;
+                }else {
+                    this.nResults=0;
+                    emitter.complete();
                 }
 
             });
@@ -92,15 +94,15 @@ export class ElasticService {
                 { "@timestamp": "desc" }
             ],
             query: {
-                "filtered": {
-                    "filter": {
-                        "bool": {
-                            "must": [
-                                {"range": {
-                                    "@timestamp": {
-                                        "gte": "now-200d",
-                                        "lte": "now" }
-                                }
+                filtered: {
+                    filter: {
+                        bool: {
+                            must: [
+                                {range: {
+                                    '@timestamp': {
+                                        gte: "now-200d",
+                                        lte: "now" }
+                                    }
                                 },
                                 { "bool":{"should": [
                                     { "exists" : { "field" : "thread_name" } },
@@ -129,15 +131,21 @@ export class ElasticService {
             //The following are the fields that are requested from each log. They should be consistent with the definition of logValue
             //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
         };
+        let requestOptions = new RequestOptions({
+            method: RequestMethod.Post,
+            url,
+            body: JSON.stringify(body)
+        });
+        this.currentRequest = requestOptions;
+
         let results: EventEmitter<any> = new EventEmitter<any>();
-
-
-        this.listAllLogs(url,body,results);
+        this.listAllLogs(requestOptions, results);
         return results;
     }
 
-    private firstSearch(value:string, sizeOfPage:number) {
-        this.scroll.search=true;
+
+    public search(value:string){
+        let searchEmitter: EventEmitter<any> = new EventEmitter<any>();
         let body = {
             "query":{
                 "multi_match": {
@@ -148,26 +156,38 @@ export class ElasticService {
                     "minimum_should_match":"30%"
                 }
             },
-            size:sizeOfPage,
+            size:this.sizeOfPage,
             sort:[
                 "_score"
             ]
         };
         let url = ES_URL + INDEX + '/_search?scroll=1m';
-        let requestoptions = new RequestOptions({
+        let requestOptions2 = new RequestOptions({
             method: RequestMethod.Post,
             url,
             body: JSON.stringify(body)
         });
-        return this._http.request(new Request(requestoptions));
+        this.currentRequest = requestOptions2;
+
+        this.listAllLogs(requestOptions2, searchEmitter);
+        return searchEmitter;
     }
 
-    public search(value:string, sizeOfPage:number){
-        if(!(this.scroll.id && this.scroll.search)){
-            return this.firstSearch(value,sizeOfPage);
-        }else if (this.scroll.id && this.scroll.search){
-            return this.scrollElastic();
-        }
+    loadMore(lastLog: any) {
+        let emitter: EventEmitter<any> = new EventEmitter<any>();
+        let lastTime = lastLog.time;
+        let b = JSON.parse(this.currentRequest.body);
+        let d = new Date(lastTime);
+        console.log(d.toLocaleDateString());
+        b.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+            "gte": lastTime,
+            "lte": lastTime+"-200d"
+        };
+        let c = this.currentRequest;
+        c.body = b;
+        console.log(c);
+        this.listAllLogs(c, emitter);
+        return emitter;
     }
 
     mapLogs(answer): any[] {

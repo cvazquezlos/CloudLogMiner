@@ -33,39 +33,43 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     this.createRowData();
                     this.createColumnDefs();
                     this.showGrid = true;
+                    this.showLoadMore = true;
                 }
                 AppComponent.prototype.createRowData = function () {
                     var _this = this;
                     //this.gridOptions.api.showLoadingOverlay();
-                    this._elasticService.getRowsDefault().subscribe(function (res) {
+                    this._elasticService.getRowsDefault()
+                        .subscribe(function (res) {
                         _this.gridOptions.api.hideOverlay();
                         _this.rowData = _this.rowData.concat(res);
                         _this.rowData = _this.rowData.slice();
+                    }, function (err) { return console.log("Error in default fetching" + err); }, function (complete) {
+                        console.log("Done");
+                        _this.showLoadMore = true;
                     });
                 };
-                /*
-                 private search(input:string) {
-                 this.gridOptions.api.showLoadingOverlay();
-            
-                 let internalSearch = (params)=> {
-                 this._elasticService.search(input).subscribe((res:Response)=>{
-            
-                 let data3 = this.elasticLogProcessing(res);
-                 this.gridOptions.api.hideOverlay();
-                 params.successCallback(data3.slice());
-                 });
-                 };
-                 let dataS= {
-                 pageSize: this.sizeOfPage,
-                 rowCount: -1,   //total number of rows unknown
-                 overflowSize: 4,
-                 //maxPagesInCache: 2, default is no limit
-                 maxConcurrentRequests: 2,
-                 getRows: internalSearch.bind(this)
-                 };
-                 this.gridOptions.api.setDatasource(dataS);
-                 }
-                 */
+                AppComponent.prototype.search = function (input) {
+                    var _this = this;
+                    //this.gridOptions.api.showLoadingOverlay();
+                    this.rowData = []; //RESTART ROW DATA or it will be append after default rows
+                    this._elasticService.search(input).subscribe(function (res) {
+                        _this.gridOptions.api.hideOverlay();
+                        _this.rowData = _this.rowData.concat(res);
+                        _this.rowData = _this.rowData.slice();
+                    }, function (err) { return console.log("Error in search" + err); }, function (complete) {
+                        console.log("Done");
+                        _this.showLoadMore = true;
+                    });
+                };
+                AppComponent.prototype.loadMore = function () {
+                    var r = this.rowCount.split("/");
+                    var lastLog = this.rowData[parseInt(r[0]) - 1];
+                    this._elasticService.loadMore(lastLog); /*.subscribe((res)=>{
+                        this.gridOptions.api.hideOverlay();
+                        this.rowData=this.rowData.concat(res);
+                        this.rowData=this.rowData.slice();
+                    });*/
+                };
                 AppComponent.prototype.createColumnDefs = function () {
                     var rowColor = function (params) {
                         if (params.data.level === 'ERROR') {

@@ -1,9 +1,7 @@
 /**
  * Created by silvia on 26/2/16.
  */
-System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxjs/add/operator/mergeMap'], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -23,8 +21,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
             function (http_1_1) {
                 http_1 = http_1_1;
             },
-            function (_1) {},
-            function (_2) {}],
+            function (_1) {}],
         execute: function() {
             /*
              const ES_URL = 'http://127.0.0.1:9200/';
@@ -40,9 +37,10 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         logger: "",
                         thread: ""
                     };
-                    this.sizeOfPage = 100;
+                    this.sizeOfPage = 50;
                     this.nResults = 0;
-                    this.maxResults = 500;
+                    this.maxResults = 300;
+                    this.currentRequest = new http_1.RequestOptions();
                 }
                 ElasticService.prototype.listIndices = function () {
                     return this._http.get('http://localhost:9200/_stats/index,store')
@@ -51,15 +49,9 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         return Object.getOwnPropertyNames(res.indices);
                     });
                 };
-                ElasticService.prototype.listAllLogs = function (url, body, emitter) {
+                ElasticService.prototype.listAllLogs = function (requestOptions, emitter) {
                     var _this = this;
-                    var requestoptions = new http_1.RequestOptions({
-                        method: http_1.RequestMethod.Post,
-                        url: url,
-                        body: JSON.stringify(body)
-                    });
-                    var url2 = ES_URL + '_search/scroll';
-                    this._http.request(new http_1.Request(requestoptions))
+                    this._http.request(new http_1.Request(requestOptions))
                         .map(function (responseData) { return responseData.json(); }) //Important include 'return' keyword
                         .map(function (answer) {
                         var id = answer._scroll_id;
@@ -75,8 +67,18 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                                 "scroll": "1m",
                                 "scroll_id": _this.scroll.id
                             };
-                            _this.listAllLogs(url2, body2, emitter);
+                            var url2 = ES_URL + '_search/scroll';
+                            var requestOptions2 = new http_1.RequestOptions({
+                                method: http_1.RequestMethod.Post,
+                                url: url2,
+                                body: JSON.stringify(body2)
+                            });
+                            _this.listAllLogs(requestOptions2, emitter);
                             return;
+                        }
+                        else {
+                            _this.nResults = 0;
+                            emitter.complete();
                         }
                     });
                     return;
@@ -88,14 +90,14 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                             { "@timestamp": "desc" }
                         ],
                         query: {
-                            "filtered": {
-                                "filter": {
-                                    "bool": {
-                                        "must": [
-                                            { "range": {
-                                                    "@timestamp": {
-                                                        "gte": "now-200d",
-                                                        "lte": "now" }
+                            filtered: {
+                                filter: {
+                                    bool: {
+                                        must: [
+                                            { range: {
+                                                    '@timestamp': {
+                                                        gte: "now-200d",
+                                                        lte: "now" }
                                                 }
                                             },
                                             { "bool": { "should": [
@@ -123,12 +125,18 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                         },
                         size: this.sizeOfPage
                     };
+                    var requestOptions = new http_1.RequestOptions({
+                        method: http_1.RequestMethod.Post,
+                        url: url,
+                        body: JSON.stringify(body)
+                    });
+                    this.currentRequest = requestOptions;
                     var results = new core_1.EventEmitter();
-                    this.listAllLogs(url, body, results);
+                    this.listAllLogs(requestOptions, results);
                     return results;
                 };
-                ElasticService.prototype.firstSearch = function (value, sizeOfPage) {
-                    this.scroll.search = true;
+                ElasticService.prototype.search = function (value) {
+                    var searchEmitter = new core_1.EventEmitter();
                     var body = {
                         "query": {
                             "multi_match": {
@@ -139,26 +147,36 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                                 "minimum_should_match": "30%"
                             }
                         },
-                        size: sizeOfPage,
+                        size: this.sizeOfPage,
                         sort: [
                             "_score"
                         ]
                     };
                     var url = ES_URL + INDEX + '/_search?scroll=1m';
-                    var requestoptions = new http_1.RequestOptions({
+                    var requestOptions2 = new http_1.RequestOptions({
                         method: http_1.RequestMethod.Post,
                         url: url,
                         body: JSON.stringify(body)
                     });
-                    return this._http.request(new http_1.Request(requestoptions));
+                    this.currentRequest = requestOptions2;
+                    this.listAllLogs(requestOptions2, searchEmitter);
+                    return searchEmitter;
                 };
-                ElasticService.prototype.search = function (value, sizeOfPage) {
-                    if (!(this.scroll.id && this.scroll.search)) {
-                        return this.firstSearch(value, sizeOfPage);
-                    }
-                    else if (this.scroll.id && this.scroll.search) {
-                        return this.scrollElastic();
-                    }
+                ElasticService.prototype.loadMore = function (lastLog) {
+                    var emitter = new core_1.EventEmitter();
+                    var lastTime = lastLog.time;
+                    var b = JSON.parse(this.currentRequest.body);
+                    var d = new Date(lastTime);
+                    console.log(d.toLocaleDateString());
+                    b.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+                        "gte": lastTime,
+                        "lte": lastTime + "-200d"
+                    };
+                    var c = this.currentRequest;
+                    c.body = b;
+                    console.log(c);
+                    this.listAllLogs(c, emitter);
+                    return emitter;
                 };
                 ElasticService.prototype.mapLogs = function (answer) {
                     var result = [];
@@ -205,7 +223,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', 'rxj
                     __metadata('design:paramtypes', [http_1.Http])
                 ], ElasticService);
                 return ElasticService;
-            }());
+            })();
             exports_1("ElasticService", ElasticService);
         }
     }

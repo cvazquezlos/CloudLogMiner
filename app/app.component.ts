@@ -18,6 +18,7 @@ export class AppComponent {
     private rowData: any[];
     private columnDefs: any[];
     private rowCount: string;
+    private showLoadMore: boolean;
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
@@ -28,39 +29,48 @@ export class AppComponent {
         this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
+        this.showLoadMore=true;
     }
 
     private createRowData(){
         //this.gridOptions.api.showLoadingOverlay();
-        this._elasticService.getRowsDefault().subscribe((res)=>{
+        this._elasticService.getRowsDefault()
+            .subscribe((res)=>{
+                this.gridOptions.api.hideOverlay();
+                this.rowData=this.rowData.concat(res);
+                this.rowData=this.rowData.slice();
+            },(err)=>console.log("Error in default fetching"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore=true;
+            });
+    }
+
+    private search(input:string) {
+        //this.gridOptions.api.showLoadingOverlay();
+        this.rowData=[];    //RESTART ROW DATA or it will be append after default rows
+        this._elasticService.search(input).subscribe((res)=>{
             this.gridOptions.api.hideOverlay();
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
-        });
+        }, (err)=>console.log("Error in search"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore=true;
+            });
+
     }
-    /*
-     private search(input:string) {
-     this.gridOptions.api.showLoadingOverlay();
 
-     let internalSearch = (params)=> {
-     this._elasticService.search(input).subscribe((res:Response)=>{
+    private loadMore() {
+        let r = this.rowCount.split("/");
+        let lastLog = this.rowData[parseInt(r[0])-1];
+        this._elasticService.loadMore(lastLog)/*.subscribe((res)=>{
+            this.gridOptions.api.hideOverlay();
+            this.rowData=this.rowData.concat(res);
+            this.rowData=this.rowData.slice();
+        });*/
+    }
 
-     let data3 = this.elasticLogProcessing(res);
-     this.gridOptions.api.hideOverlay();
-     params.successCallback(data3.slice());
-     });
-     };
-     let dataS= {
-     pageSize: this.sizeOfPage,
-     rowCount: -1,   //total number of rows unknown
-     overflowSize: 4,
-     //maxPagesInCache: 2, default is no limit
-     maxConcurrentRequests: 2,
-     getRows: internalSearch.bind(this)
-     };
-     this.gridOptions.api.setDatasource(dataS);
-     }
-     */
 
 
     private createColumnDefs() {
