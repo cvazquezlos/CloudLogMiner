@@ -7,12 +7,12 @@ import {Injectable,EventEmitter} from "angular2/core";
 import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import 'rxjs/add/operator/map';
 
-/*
- const ES_URL = 'http://127.0.0.1:9200/';
- const INDEX = "<logstash-*>";*/
 
+ const ES_URL = 'http://127.0.0.1:9200/';
+ const INDEX = "<logstash-*>";
+/*
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-const INDEX = "<kurento-*>";
+const INDEX = "<kurento-*>";*/
 
 
 @Injectable()
@@ -31,11 +31,11 @@ export class ElasticService {
         thread:""
     };
 
-    private sizeOfPage:number = 50;
+    private sizeOfPage:number = 10;
 
     private nResults:number = 0;
 
-    private maxResults:number = 300;
+    private maxResults:number = 50;
 
     private currentRequest:RequestOptions = new RequestOptions();
 
@@ -43,7 +43,7 @@ export class ElasticService {
 
     }
 
-    private listIndices() {                     //Never used
+    public listIndices() {                     //Never used
         return this._http.get('http://localhost:9200/_stats/index,store')
             .map(res=>res.json())
             .map(res => {
@@ -51,7 +51,7 @@ export class ElasticService {
             });
     }
 
-    private listAllLogs(requestOptions:any, emitter):any {
+    public listAllLogs(requestOptions:any, emitter):any {
 
         this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
@@ -137,6 +137,7 @@ export class ElasticService {
             body: JSON.stringify(body)
         });
         this.currentRequest = requestOptions;
+        console.log(requestOptions);
 
         let results: EventEmitter<any> = new EventEmitter<any>();
         this.listAllLogs(requestOptions, results);
@@ -174,20 +175,28 @@ export class ElasticService {
     }
 
     loadMore(lastLog: any) {
-        let emitter: EventEmitter<any> = new EventEmitter<any>();
+        let loadMoreEmitter:EventEmitter<any> = new EventEmitter<any>();
         let lastTime = lastLog.time;
-        let b = JSON.parse(this.currentRequest.body);
-        let d = new Date(lastTime);
-        console.log(d.toLocaleDateString());
-        b.query.filtered.filter.bool.must[0].range["@timestamp"] = {
-            "gte": lastTime,
-            "lte": lastTime+"-200d"
+        let newBody = JSON.parse(this.currentRequest.body);
+        let lessThan:Date = new Date(lastTime);
+        let greaterThan:Date = new Date(lastTime);
+        greaterThan.setDate(greaterThan.getDate() - 20);
+        newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+            "gte": greaterThan.toISOString(),
+            "lte": lessThan.toISOString()
         };
-        let c = this.currentRequest;
-        c.body = b;
-        console.log(c);
-        this.listAllLogs(c, emitter);
-        return emitter;
+        if (!(JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte === greaterThan.toISOString())) {
+            this.currentRequest.body = JSON.stringify(newBody);
+            let auxEmitter: EventEmitter<any> = new EventEmitter<any>();
+            this.listAllLogs(this.currentRequest, auxEmitter);
+            auxEmitter.subscribe(logs => {
+                loadMoreEmitter.emit(logs);
+            });
+        } else {
+            console.log ("No more results to fetch");
+            loadMoreEmitter.complete()
+        }
+        return loadMoreEmitter;
     }
 
     mapLogs(answer): any[] {

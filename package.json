@@ -9,7 +9,8 @@
     "typings": "typings",
     "docker-build": "docker build -t ng2-quickstart .",
     "docker": "npm run docker-build && docker run -it --rm -p 3000:3000 -p 3001:3001 ng2-quickstart",
-    "postinstall": "typings install"
+    "postinstall": "typings install",
+    "test": "live-server --open=unit-tests.html"
   },
   "license": "ISC",
   "dependencies": {
@@ -24,8 +25,9 @@
   },
   "devDependencies": {
     "concurrently": "^2.0.0",
+    "jasmine-core": "2.4.1",
     "lite-server": "^2.2.0",
     "typescript": "^1.8.9",
-    "typings":"^0.7.12"
+    "typings": "^0.7.12"
   }
 }
