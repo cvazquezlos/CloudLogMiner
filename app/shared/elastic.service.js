@@ -1,7 +1,9 @@
 /**
  * Created by silvia on 26/2/16.
  */
-System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], function(exports_1) {
+System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], function(exports_1, context_1) {
+    "use strict";
+    var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -37,9 +39,9 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                         logger: "",
                         thread: ""
                     };
-                    this.sizeOfPage = 50;
+                    this.sizeOfPage = 10;
                     this.nResults = 0;
-                    this.maxResults = 300;
+                    this.maxResults = 50;
                     this.currentRequest = new http_1.RequestOptions();
                 }
                 ElasticService.prototype.listIndices = function () {
@@ -62,7 +64,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                         .subscribe(function (batch) {
                         _this.nResults = _this.nResults + _this.sizeOfPage;
                         emitter.emit(batch);
-                        if (_this.nResults < _this.maxResults) {
+                        if (_this.nResults < _this.maxResults && batch.length == _this.sizeOfPage) {
                             var body2 = {
                                 "scroll": "1m",
                                 "scroll_id": _this.scroll.id
@@ -163,20 +165,29 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                     return searchEmitter;
                 };
                 ElasticService.prototype.loadMore = function (lastLog) {
-                    var emitter = new core_1.EventEmitter();
+                    var loadMoreEmitter = new core_1.EventEmitter();
                     var lastTime = lastLog.time;
-                    var b = JSON.parse(this.currentRequest.body);
-                    var d = new Date(lastTime);
-                    console.log(d.toLocaleDateString());
-                    b.query.filtered.filter.bool.must[0].range["@timestamp"] = {
-                        "gte": lastTime,
-                        "lte": lastTime + "-200d"
+                    var newBody = JSON.parse(this.currentRequest.body);
+                    var lessThan = new Date(lastTime);
+                    var greaterThan = new Date(lastTime);
+                    greaterThan.setDate(greaterThan.getDate() - 200);
+                    newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+                        "gte": greaterThan.toISOString(),
+                        "lte": lessThan.toISOString()
                     };
-                    var c = this.currentRequest;
-                    c.body = b;
-                    console.log(c);
-                    this.listAllLogs(c, emitter);
-                    return emitter;
+                    if (!(JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte === greaterThan.toISOString())) {
+                        this.currentRequest.body = JSON.stringify(newBody);
+                        var auxEmitter = new core_1.EventEmitter();
+                        this.listAllLogs(this.currentRequest, auxEmitter);
+                        auxEmitter.subscribe(function (logs) {
+                            loadMoreEmitter.emit(logs);
+                        });
+                    }
+                    else {
+                        console.log("No more results to fetch");
+                        loadMoreEmitter.complete();
+                    }
+                    return loadMoreEmitter;
                 };
                 ElasticService.prototype.mapLogs = function (answer) {
                     var result = [];
@@ -223,7 +234,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                     __metadata('design:paramtypes', [http_1.Http])
                 ], ElasticService);
                 return ElasticService;
-            })();
+            }());
             exports_1("ElasticService", ElasticService);
         }
     }

@@ -32,7 +32,7 @@ export class AppComponent {
         this.showLoadMore=true;
     }
 
-    private createRowData(){
+    public createRowData(){
         //this.gridOptions.api.showLoadingOverlay();
         this._elasticService.getRowsDefault()
             .subscribe((res)=>{
@@ -46,7 +46,7 @@ export class AppComponent {
             });
     }
 
-    private search(input:string) {
+    public search(input:string) {
         //this.gridOptions.api.showLoadingOverlay();
         this.rowData=[];    //RESTART ROW DATA or it will be append after default rows
         this._elasticService.search(input).subscribe((res)=>{
@@ -56,19 +56,23 @@ export class AppComponent {
         }, (err)=>console.log("Error in search"+err),
             (complete)=>{
                 console.log("Done");
-                this.showLoadMore=true;
+                this.showLoadMore = true;
             });
 
     }
 
-    private loadMore() {
+    public loadMore() {
         let r = this.rowCount.split("/");
         let lastLog = this.rowData[parseInt(r[0])-1];
-        this._elasticService.loadMore(lastLog)/*.subscribe((res)=>{
+        this._elasticService.loadMore(lastLog).subscribe((res)=>{
             this.gridOptions.api.hideOverlay();
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
-        });*/
+        }, (err)=>console.log("Error in further fetching"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore = false;
+            });
     }
 
     public createColumnDefs() {
@@ -119,78 +123,78 @@ export class AppComponent {
         }
     }
 
-    private onModelUpdated() {
+    public onModelUpdated() {
         console.log('onModelUpdated');
         this.calculateRowCount();
     }
 
-    private onReady() {
+    public onReady() {
         console.log('onReady');
         this.calculateRowCount();
     }
 
-    private onCellClicked($event) {
+    public onCellClicked($event) {
         console.log('onCellClicked: ' + $event.rowIndex + ' ' + $event.colDef.field);
     }
 
-    private onCellValueChanged($event) {
+    public onCellValueChanged($event) {
         console.log('onCellValueChanged: ' + $event.oldValue + ' to ' + $event.newValue);
     }
 
-    private onCellDoubleClicked($event) {
+    public onCellDoubleClicked($event) {
         console.log('onCellDoubleClicked: ' + $event.rowIndex + ' ' + $event.colDef.field);
     }
 
-    private onCellContextMenu($event) {
+    public onCellContextMenu($event) {
         console.log('onCellContextMenu: ' + $event.rowIndex + ' ' + $event.colDef.field);
     }
 
-    private onCellFocused($event) {
+    public onCellFocused($event) {
         console.log('onCellFocused: (' + $event.rowIndex + ',' + $event.colIndex + ')');
     }
 
-    private onRowSelected($event) {
+    public onRowSelected($event) {
         console.log('onRowSelected: ' + $event.node.data.name);
     }
 
-    private onSelectionChanged() {
+    public onSelectionChanged() {
         console.log('selectionChanged');
     }
 
-    private onBeforeFilterChanged() {
+    public onBeforeFilterChanged() {
         console.log('beforeFilterChanged');
     }
 
-    private onAfterFilterChanged() {
+    public onAfterFilterChanged() {
         console.log('afterFilterChanged');
     }
 
-    private onFilterModified() {
+    public onFilterModified() {
         console.log('onFilterModified');
     }
 
-    private onBeforeSortChanged() {
+    public onBeforeSortChanged() {
         console.log('onBeforeSortChanged');
     }
 
-    private onAfterSortChanged() {
+    public onAfterSortChanged() {
         console.log('onAfterSortChanged');
     }
 
-    private onVirtualRowRemoved($event) {
+    public onVirtualRowRemoved($event) {
         // because this event gets fired LOTS of times, we don't print it to the
         // console. if you want to see it, just uncomment out this line
         // console.log('onVirtualRowRemoved: ' + $event.rowIndex);
     }
 
-    private onRowClicked($event) {
+    public onRowClicked($event) {
         console.log('onRowClicked: ' + $event.node.data.time);
     }
 
 
     // here we use one generic event to handle all the column type events.
     // the method just prints the event name
-    private onColumnEvent($event) {
+    public onColumnEvent($event) {
         console.log('onColumnEvent: ' + $event);
     }
 

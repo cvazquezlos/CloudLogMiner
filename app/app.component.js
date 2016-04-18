@@ -1,4 +1,6 @@
-System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"], function(exports_1) {
+System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"], function(exports_1, context_1) {
+    "use strict";
+    var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -60,13 +62,17 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     });
                 };
                 AppComponent.prototype.loadMore = function () {
+                    var _this = this;
                     var r = this.rowCount.split("/");
                     var lastLog = this.rowData[parseInt(r[0]) - 1];
-                    this._elasticService.loadMore(lastLog); /*.subscribe((res)=>{
-                        this.gridOptions.api.hideOverlay();
-                        this.rowData=this.rowData.concat(res);
-                        this.rowData=this.rowData.slice();
-                    });*/
+                    this._elasticService.loadMore(lastLog).subscribe(function (res) {
+                        _this.gridOptions.api.hideOverlay();
+                        _this.rowData = _this.rowData.concat(res);
+                        _this.rowData = _this.rowData.slice();
+                    }, function (err) { return console.log("Error in further fetching" + err); }, function (complete) {
+                        console.log("Done");
+                        _this.showLoadMore = false;
+                    });
                 };
                 AppComponent.prototype.createColumnDefs = function () {
                     var rowColor = function (params) {
@@ -183,7 +189,7 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     __metadata('design:paramtypes', [elastic_service_1.ElasticService])
                 ], AppComponent);
                 return AppComponent;
-            })();
+            }());
             exports_1("AppComponent", AppComponent);
         }
     }
