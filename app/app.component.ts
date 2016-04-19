@@ -19,6 +19,7 @@ export class AppComponent {
     private columnDefs: any[];
     private rowCount: string;
     private showLoadMore: boolean;
+    private searchByRelevance: boolean;
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
@@ -30,6 +31,7 @@ export class AppComponent {
         this.createColumnDefs();
         this.showGrid = true;
         this.showLoadMore=true;
+        this.searchByRelevance=false;
     }
 
     public createRowData(){
@@ -48,8 +50,8 @@ export class AppComponent {
 
     public search(input:string) {
         //this.gridOptions.api.showLoadingOverlay();
-        this.rowData=[];    //RESTART ROW DATA or it will be append after default rows
-        this._elasticService.search(input).subscribe((res)=>{
+        this.rowData=[];                //RESTART ROW DATA or it will be appended after default rows
+        this._elasticService.search(input, this.searchByRelevance).subscribe((res)=>{
             this.gridOptions.api.hideOverlay();
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
@@ -87,9 +89,6 @@ export class AppComponent {
         };
 
         this.columnDefs = [
-            {
-                headerName: '#', width: 30, checkboxSelection: false, pinned: true, editable: true
-            },
             {
                 headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
             },

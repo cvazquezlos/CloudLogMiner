@@ -25,11 +25,11 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
             },
             function (_1) {}],
         execute: function() {
+            ES_URL = 'http://127.0.0.1:9200/';
+            INDEX = "<logstash-*>";
             /*
-             const ES_URL = 'http://127.0.0.1:9200/';
-             const INDEX = "<logstash-*>";*/
-            ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-            INDEX = "<kurento-*>";
+            const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
+            const INDEX = "<kurento-*>";*/
             ElasticService = (function () {
                 function ElasticService(_http) {
                     this._http = _http;
@@ -137,8 +137,12 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                     this.listAllLogs(requestOptions, results);
                     return results;
                 };
-                ElasticService.prototype.search = function (value) {
+                ElasticService.prototype.search = function (value, orderByRelevance) {
                     var searchEmitter = new core_1.EventEmitter();
+                    var sort = { '@timestamp': 'desc' };
+                    if (orderByRelevance) {
+                        sort = "_score";
+                    }
                     var body = {
                         "query": {
                             "multi_match": {
@@ -151,7 +155,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                         },
                         size: this.sizeOfPage,
                         sort: [
-                            "_score"
+                            sort
                         ]
                     };
                     var url = ES_URL + INDEX + '/_search?scroll=1m';

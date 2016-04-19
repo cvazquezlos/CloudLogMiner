@@ -7,12 +7,12 @@ import {Injectable,EventEmitter} from "angular2/core";
 import {Http, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import 'rxjs/add/operator/map';
 
-/*
- const ES_URL = 'http://127.0.0.1:9200/';
- const INDEX = "<logstash-*>";*/
 
+ const ES_URL = 'http://127.0.0.1:9200/';
+ const INDEX = "<logstash-*>";
+/*
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-const INDEX = "<kurento-*>";
+const INDEX = "<kurento-*>";*/
 
 
 @Injectable()
@@ -144,8 +144,12 @@ export class ElasticService {
     }
 
 
-    public search(value:string){
+    public search(value:string, orderByRelevance: boolean) {
         let searchEmitter: EventEmitter<any> = new EventEmitter<any>();
+        let sort = { '@timestamp': 'desc'};
+        if(orderByRelevance) {
+            sort = "_score";
+        }
         let body = {
             "query":{
                 "multi_match": {
@@ -158,7 +162,7 @@ export class ElasticService {
             },
             size:this.sizeOfPage,
             sort:[
-                "_score"
+                sort
             ]
         };
         let url = ES_URL + INDEX + '/_search?scroll=1m';
@@ -172,6 +176,7 @@ export class ElasticService {
         this.listAllLogs(requestOptions2, searchEmitter);
         return searchEmitter;
     }
+    
 
     loadMore(lastLog: any) {
         let loadMoreEmitter:EventEmitter<any> = new EventEmitter<any>();

@@ -34,6 +34,7 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     this.createColumnDefs();
                     this.showGrid = true;
                     this.showLoadMore = true;
+                    this.searchByRelevance = false;
                 }
                 AppComponent.prototype.createRowData = function () {
                     var _this = this;
@@ -51,8 +52,8 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                 AppComponent.prototype.search = function (input) {
                     var _this = this;
                     //this.gridOptions.api.showLoadingOverlay();
-                    this.rowData = []; //RESTART ROW DATA or it will be append after default rows
-                    this._elasticService.search(input).subscribe(function (res) {
+                    this.rowData = []; //RESTART ROW DATA or it will be appended after default rows
+                    this._elasticService.search(input, this.searchByRelevance).subscribe(function (res) {
                         _this.gridOptions.api.hideOverlay();
                         _this.rowData = _this.rowData.concat(res);
                         _this.rowData = _this.rowData.slice();
@@ -87,9 +88,6 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                         }
                     };
                     this.columnDefs = [
-                        {
-                            headerName: '#', width: 30, checkboxSelection: false, pinned: true, editable: true
-                        },
                         {
                             headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
                         },

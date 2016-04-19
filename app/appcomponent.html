@@ -7,6 +7,11 @@
             <button [disabled]="!showGrid" (click)="showGrid=false">Destroy Grid</button>
             <button [disabled]="showGrid" (click)="showGrid=true">Create Grid</button>
         </div>
+        <div style="float:right">
+            <label>
+                Order by relevance <input type="checkbox" (change)="searchByRelevance=$event.target.checked"/>
+            </label>
+        </div>
         <div>
             <b>Row count</b>
             {{rowCount}}
@@ -33,10 +38,6 @@
         </div>
         <div style="clear: both;"></div>
         <div style="padding: 4px;" class="toolbar">
-            <label>
-                <input type="checkbox" (change)="showToolPanel=$event.target.checked"/>
-                Show Tool Panel
-            </label>
             <button (click)="createRowData()">Refresh Data</button>
         </div>
         <div style="clear: both;"></div>
