@@ -147,9 +147,9 @@ export class ElasticService {
 
 
     public search(value:string, orderByRelevance: boolean) {
-        let sort = "[{ '@timestamp': 'desc'}]";
+        let sort = [{ '@timestamp': 'desc'}];
         if(orderByRelevance) {
-            sort = "[_score]";
+            sort = ["_score"];
         }
         let body = {
             "query":{
