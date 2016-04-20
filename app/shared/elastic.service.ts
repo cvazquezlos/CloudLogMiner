@@ -147,9 +147,13 @@ export class ElasticService {
 
 
     public search(value:string, orderByRelevance: boolean) {
-        let sort = "[{ '@timestamp': 'desc'}]";
+        let sort;
         if(orderByRelevance) {
-            sort = "[_score]";
+            let options1 = "_score";
+            sort = [options1]
+        }else{
+             let options2 = { '@timestamp': 'desc'};
+            sort = [options2];
         }
         let body = {
             "query":{
@@ -193,9 +197,8 @@ export class ElasticService {
         };
         if (!(JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte === greaterThan.toISOString())) {
             this.currentRequest.body = JSON.stringify(newBody);
-            let auxEmitter: EventEmitter<any> = new EventEmitter<any>();
-            this.listAllLogs(this.currentRequest, auxEmitter);
-            auxEmitter.subscribe(logs => {
+            let observableAux = Observable.create((observer) => this.listAllLogs(this.currentRequest, observer));
+            observableAux.subscribe(logs => {
                 loadMoreEmitter.emit(logs);
             });
         } else {
