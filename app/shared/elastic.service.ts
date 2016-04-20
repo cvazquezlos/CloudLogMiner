@@ -6,6 +6,7 @@
 import {Injectable,EventEmitter} from "angular2/core";
 import {Http, RequestOptions, RequestMethod, Request} from 'angular2/http';
 import 'rxjs/add/operator/map';
+import {Observable} from "rxjs/Observable";
 
 
  const ES_URL = 'http://127.0.0.1:9200/';
@@ -63,7 +64,8 @@ export class ElasticService {
             })
             .subscribe(batch=> {
                 this.nResults=this.nResults+this.sizeOfPage;
-                emitter.emit(batch);
+                emitter.next(batch);
+
                 if(this.nResults<this.maxResults && batch.length==this.sizeOfPage){         //if length is less than size of page there is no need for a scroll
                     let body2 = {
                         "scroll" : "1m",
@@ -138,17 +140,16 @@ export class ElasticService {
         });
         this.currentRequest = requestOptions;
 
-        let results: EventEmitter<any> = new EventEmitter<any>();
-        this.listAllLogs(requestOptions, results);
-        return results;
+        let observable = Observable.create((observer) => this.listAllLogs(requestOptions, observer));
+
+        return observable;
     }
 
 
     public search(value:string, orderByRelevance: boolean) {
-        let searchEmitter: EventEmitter<any> = new EventEmitter<any>();
-        let sort = { '@timestamp': 'desc'};
+        let sort = "[{ '@timestamp': 'desc'}]";
         if(orderByRelevance) {
-            sort = "_score";
+            sort = "[_score]";
         }
         let body = {
             "query":{
@@ -161,9 +162,9 @@ export class ElasticService {
                 }
             },
             size:this.sizeOfPage,
-            sort:[
+            sort:
                 sort
-            ]
+
         };
         let url = ES_URL + INDEX + '/_search?scroll=1m';
         let requestOptions2 = new RequestOptions({
@@ -173,8 +174,9 @@ export class ElasticService {
         });
         this.currentRequest = requestOptions2;
 
-        this.listAllLogs(requestOptions2, searchEmitter);
-        return searchEmitter;
+        let observable = Observable.create((observer) => this.listAllLogs(requestOptions2, observer));
+
+        return observable;
     }
     
 
