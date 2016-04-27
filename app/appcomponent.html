@@ -3,9 +3,9 @@
     <div style="padding: 4px;">
         <div style="float: right;">
             <input #searchinput type="text" id="searchInput" placeholder="Type text to query..."/>
-            <button (click)="search(searchinput.value)">Search</button>
-            <button [disabled]="!showGrid" (click)="showGrid=false">Destroy Grid</button>
-            <button [disabled]="showGrid" (click)="showGrid=true">Create Grid</button>
+            <button (click)="search(searchinput.value)" class="btn btn-default">Search</button>
+            <button [disabled]="!showGrid" (click)="showGrid=false" class="btn btn-default">Destroy Grid</button>
+            <button [disabled]="showGrid" (click)="showGrid=true" class="btn btn-default">Create Grid</button>
         </div>
         <div style="float:right">
             <label>
@@ -19,6 +19,19 @@
     </div>
     <div style="clear: both;"></div>
 
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="from">From</label>
+            <input #from type="datetime-local" class="form-control" id="from" placeholder="Yesterday" [value]="getDefaultFromValue()" novalidate="true" step=1>
+        </div>
+
+        <div class="form-group">
+            <label for="to">To</label>
+            <input #to type="datetime-local" class="form-control" id="to" placeholder="Now" [value]="getDefaultToValue()" novalidate="true" step=1>
+        </div>
+        <button (click)="loadByDate(to.value, from.value)" class="btn btn-default">Search</button>
+    </form>
+
     <div *ngIf="showGrid">
 
         <!-- Because we are using the Angular ID (ie #ag-grid marker), we have to have all the items that use
@@ -27,22 +40,17 @@
         <div style="padding: 4px;" class="toolbar">
             <span>
                 Grid API:
-                <button (click)="agGrid.api.selectAll()">Select All</button>
-                <button (click)="agGrid.api.deselectAll()">Clear Selection</button>
-            </span>
-            <span style="margin-left: 20px;">
-                Column API:
-                <button (click)="agGrid.columnApi.setColumnVisible('country', false)">Hide Country Column</button>
-                <button (click)="agGrid.columnApi.setColumnVisible('country', true)">Show Country Column</button>
+                <button (click)="agGrid.api.selectAll()" class="btn btn-default">Select All</button>
+                <button (click)="agGrid.api.deselectAll()" class="btn btn-default">Clear Selection</button>
             </span>
         </div>
         <div style="clear: both;"></div>
         <div style="padding: 4px;" class="toolbar">
-            <button (click)="createRowData()">Refresh Data</button>
+            <button (click)="createRowData()" class="btn btn-default">Refresh Data</button>
         </div>
         <div style="clear: both;"></div>
 
-        <ag-grid-ng2 #agGrid style="width: 80%; height: 35em; margin-left:3em" class="ag-fresh"
+        <ag-grid-ng2 #agGrid style="width: 80%; height: 30em; margin-left:3em" class="ag-fresh"
 
                      [gridOptions]="gridOptions"
                      [columnDefs]="columnDefs"
@@ -86,7 +94,7 @@
                      (columnResized)="onColumnEvent($event)"
                      (columnPinnedCountChanged)="onColumnEvent($event)">
         </ag-grid-ng2>
-        <div><button *ngIf="showLoadMore" (click)="loadMore()" style="margin-left:40%">Load more</button></div>
+        <div><button *ngIf="showLoadMore" (click)="loadMore()" class="btn btn-default" style="margin-left:40%">Load more</button></div>
     </div>
 
 </div>

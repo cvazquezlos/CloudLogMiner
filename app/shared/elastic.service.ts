@@ -20,7 +20,7 @@ const INDEX = "<kurento-*>";*/
 export class ElasticService {
 
 
-    scroll:{id:string,search:boolean}={id:"",search:false};         //Elasticsearch scroll indicator
+    scroll:string = "";         //Elasticsearch scroll indicator
 
     fields:{
         level:any,
@@ -58,7 +58,7 @@ export class ElasticService {
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
             .map((answer)=> {
                 let id = answer._scroll_id;
-                this.scroll.id = id;                //id has to be assigned before mapLogs, which only returns the hits.
+                this.scroll = id;                //id has to be assigned before mapLogs, which only returns the hits.
                 answer=this.mapLogs(answer);
                 return answer;
             })
@@ -69,7 +69,7 @@ export class ElasticService {
                 if(this.nResults<this.maxResults && batch.length==this.sizeOfPage){         //if length is less than size of page there is no need for a scroll
                     let body2 = {
                         "scroll" : "1m",
-                        "scroll_id" : this.scroll.id
+                        "scroll_id" : this.scroll
                     };
                     let url2 = ES_URL + '_search/scroll';
                     let requestOptions2 = new RequestOptions({
@@ -171,41 +171,90 @@ export class ElasticService {
 
         };
         let url = ES_URL + INDEX + '/_search?scroll=1m';
+
         let requestOptions2 = new RequestOptions({
             method: RequestMethod.Post,
             url,
             body: JSON.stringify(body)
         });
-        this.currentRequest = requestOptions2;
-
-        let observable = Observable.create((observer) => this.listAllLogs(requestOptions2, observer));
+        if (!orderByRelevance) {            //Fetching more as it is implemented now uses timestamp of the older log
+            this.currentRequest = requestOptions2;
+        } else {
+            this.currentRequest = null;
+        }
+        let observable = Observable.create((observer) =>
+            this.listAllLogs(requestOptions2, observer));
 
         return observable;
     }
-    
 
-    loadMore(lastLog: any) {
-        let loadMoreEmitter:EventEmitter<any> = new EventEmitter<any>();
-        let lastTime = lastLog.time;
-        let newBody = JSON.parse(this.currentRequest.body);
-        let lessThan:Date = new Date(lastTime);
-        let greaterThan:Date = new Date(lastTime);
-        greaterThan.setDate(greaterThan.getDate() - 200);
-        newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
-            "gte": greaterThan.toISOString(),
-            "lte": lessThan.toISOString()
-        };
-        if (!(JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte === greaterThan.toISOString())) {
-            this.currentRequest.body = JSON.stringify(newBody);
-            let observableAux = Observable.create((observer) => this.listAllLogs(this.currentRequest, observer));
-            observableAux.subscribe(logs => {
-                loadMoreEmitter.emit(logs);
-            });
+    loadMore(lastLog: any){
+        if(this.currentRequest) {
+            let lastTime = lastLog.time || lastLog._source["@timestamp"];
+            let newBody = JSON.parse(this.currentRequest.body);
+            let lessThan:Date = new Date(lastTime);
+            let greaterThan:Date = new Date(lastTime);
+            greaterThan.setDate(greaterThan.getDate() - 200);
+            return this.loadByDate(lessThan, greaterThan)
         } else {
-            console.log ("No more results to fetch");
-            loadMoreEmitter.complete()
+            return Observable.create((ob) => {ob.complete()});
         }
-        return loadMoreEmitter;
+    }
+
+    loadByDate(lessThan, greaterThan) {
+        let newBody = JSON.parse(this.currentRequest.body);
+        let oldRequestGreaterThan;
+        if(lessThan instanceof Date){
+            lessThan = lessThan.toISOString();
+            greaterThan = greaterThan.toISOString();
+        }
+
+        let isSearch;
+        if (newBody.query.hasOwnProperty('multi_match')) {
+            let bodyforsearch = {
+                "query" :{
+                    "filtered" : {
+                        "query" : {
+                            "multi_match" : newBody.query.multi_match
+                        },
+                        "filter" : {
+                            "range": {
+                                '@timestamp': {
+                                    "gte": greaterThan,
+                                    "lte": lessThan
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            newBody=bodyforsearch;
+            isSearch=true;
+
+        } else {
+            newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+                "gte": greaterThan,
+                "lte": lessThan
+            };
+            oldRequestGreaterThan = JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte;
+        }
+
+        let loadMoreObservable = Observable.create((observer) => {
+            if (!(oldRequestGreaterThan === greaterThan)) {
+                this.currentRequest.body = JSON.stringify(newBody);
+                let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
+                observableAux.subscribe(logs => {
+                    observer.next(logs);
+                });
+                if(isSearch){
+                    observer.complete();
+                }
+            } else {
+                console.log("No more results to fetch");
+                observer.complete()
+            }
+        });
+        return loadMoreObservable;
     }
 
     mapLogs(answer): any[] {

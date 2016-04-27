@@ -1,7 +1,7 @@
 import {Component} from 'angular2/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
-import {Http, Response, HTTP_PROVIDERS, Headers, RequestOptions, RequestMethod, Request} from 'angular2/http';
+import {toInputLiteral} from './shared/DateUtils';
 import {ElasticService} from "./shared/elastic.service";
 
 @Component({
@@ -20,6 +20,10 @@ export class AppComponent {
     private rowCount: string;
     private showLoadMore: boolean;
     private searchByRelevance: boolean;
+
+    private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
+    private defaultTo = new Date(new Date().valueOf() - (1 * 60 * 60 * 1000));
+
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
@@ -60,13 +64,25 @@ export class AppComponent {
                 console.log("Done");
                 this.showLoadMore = true;
             });
+    }
 
+    public loadByDate(to, from){
+        this.rowData=[];
+        this._elasticService.loadByDate(to,from).subscribe((res) => {
+            this.gridOptions.api.hideOverlay();
+            this.rowData=this.rowData.concat(res);
+            this.rowData=this.rowData.slice();
+        }, (err)=>console.log("Error in loading by date"+err),
+            (complete)=>{
+                console.log("Done");
+                this.showLoadMore = true;
+            });
     }
 
     public loadMore() {
         let r = this.rowCount.split("/");
         let lastLog = this.rowData[parseInt(r[0])-1];
-        this._elasticService.loadMore(lastLog).subscribe((res)=>{
+        this._elasticService.loadMore(lastLog).subscribe((res) => {
             this.gridOptions.api.hideOverlay();
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
@@ -195,6 +211,15 @@ export class AppComponent {
     // the method just prints the event name
     public onColumnEvent($event) {
         console.log('onColumnEvent: ' + $event);
+    }
+
+    // AUX METHODS ------------------------------
+    getDefaultFromValue() {
+        return toInputLiteral(this.defaultFrom);
+    }
+
+    getDefaultToValue() {
+        return toInputLiteral(this.defaultTo);
     }
 
 }
