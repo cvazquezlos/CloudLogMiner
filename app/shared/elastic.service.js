@@ -1,7 +1,7 @@
 /**
  * Created by silvia on 26/2/16.
  */
-System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], function(exports_1, context_1) {
+System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', "rxjs/Observable"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -13,7 +13,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1;
+    var core_1, http_1, Observable_1;
     var ES_URL, INDEX, ElasticService;
     return {
         setters:[
@@ -23,7 +23,10 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
             function (http_1_1) {
                 http_1 = http_1_1;
             },
-            function (_1) {}],
+            function (_1) {},
+            function (Observable_1_1) {
+                Observable_1 = Observable_1_1;
+            }],
         execute: function() {
             ES_URL = 'http://127.0.0.1:9200/';
             INDEX = "<logstash-*>";
@@ -33,7 +36,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
             ElasticService = (function () {
                 function ElasticService(_http) {
                     this._http = _http;
-                    this.scroll = { id: "", search: false }; //Elasticsearch scroll indicator
+                    this.scroll = ""; //Elasticsearch scroll indicator
                     this.fields = {
                         level: "",
                         logger: "",
@@ -57,17 +60,17 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                         .map(function (responseData) { return responseData.json(); }) //Important include 'return' keyword
                         .map(function (answer) {
                         var id = answer._scroll_id;
-                        _this.scroll.id = id; //id has to be assigned before mapLogs, which only returns the hits.
+                        _this.scroll = id; //id has to be assigned before mapLogs, which only returns the hits.
                         answer = _this.mapLogs(answer);
                         return answer;
                     })
                         .subscribe(function (batch) {
                         _this.nResults = _this.nResults + _this.sizeOfPage;
-                        emitter.emit(batch);
-                        if (_this.nResults < _this.maxResults) {
+                        emitter.next(batch);
+                        if (_this.nResults < _this.maxResults && batch.length == _this.sizeOfPage) {
                             var body2 = {
                                 "scroll": "1m",
-                                "scroll_id": _this.scroll.id
+                                "scroll_id": _this.scroll
                             };
                             var url2 = ES_URL + '_search/scroll';
                             var requestOptions2 = new http_1.RequestOptions({
@@ -86,6 +89,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                     return;
                 };
                 ElasticService.prototype.getRowsDefault = function () {
+                    var _this = this;
                     var url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
                     var body = {
                         sort: [
@@ -134,12 +138,20 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                     });
                     this.currentRequest = requestOptions;
                     console.log(requestOptions);
-                    var results = new core_1.EventEmitter();
-                    this.listAllLogs(requestOptions, results);
-                    return results;
+                    var observable = Observable_1.Observable.create(function (observer) { return _this.listAllLogs(requestOptions, observer); });
+                    return observable;
                 };
-                ElasticService.prototype.search = function (value) {
-                    var searchEmitter = new core_1.EventEmitter();
+                ElasticService.prototype.search = function (value, orderByRelevance) {
+                    var _this = this;
+                    var sort;
+                    if (orderByRelevance) {
+                        var options1 = "_score";
+                        sort = [options1];
+                    }
+                    else {
+                        var options2 = { '@timestamp': 'desc' };
+                        sort = [options2];
+                    }
                     var body = {
                         "query": {
                             "multi_match": {
@@ -151,9 +163,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                             }
                         },
                         size: this.sizeOfPage,
-                        sort: [
-                            "_score"
-                        ]
+                        sort: sort
                     };
                     var url = ES_URL + INDEX + '/_search?scroll=1m';
                     var requestOptions2 = new http_1.RequestOptions({
@@ -161,34 +171,84 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map'], fun
                         url: url,
                         body: JSON.stringify(body)
                     });
-                    this.currentRequest = requestOptions2;
-                    this.listAllLogs(requestOptions2, searchEmitter);
-                    return searchEmitter;
-                };
-                ElasticService.prototype.loadMore = function (lastLog) {
-                    var loadMoreEmitter = new core_1.EventEmitter();
-                    var lastTime = lastLog.time;
-                    var newBody = JSON.parse(this.currentRequest.body);
-                    var lessThan = new Date(lastTime);
-                    var greaterThan = new Date(lastTime);
-                    greaterThan.setDate(greaterThan.getDate() - 20);
-                    newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
-                        "gte": greaterThan.toISOString(),
-                        "lte": lessThan.toISOString()
-                    };
-                    if (!(JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte === greaterThan.toISOString())) {
-                        this.currentRequest.body = JSON.stringify(newBody);
-                        var auxEmitter = new core_1.EventEmitter();
-                        this.listAllLogs(this.currentRequest, auxEmitter);
-                        auxEmitter.subscribe(function (logs) {
-                            loadMoreEmitter.emit(logs);
-                        });
+                    if (!orderByRelevance) {
+                        this.currentRequest = requestOptions2;
                     }
                     else {
-                        console.log("No more results to fetch");
-                        loadMoreEmitter.complete();
+                        this.currentRequest = null;
                     }
-                    return loadMoreEmitter;
+                    var observable = Observable_1.Observable.create(function (observer) {
+                        return _this.listAllLogs(requestOptions2, observer);
+                    });
+                    return observable;
+                };
+                ElasticService.prototype.loadMore = function (lastLog) {
+                    if (this.currentRequest) {
+                        var lastTime = lastLog.time || lastLog._source["@timestamp"];
+                        var newBody = JSON.parse(this.currentRequest.body);
+                        var lessThan = new Date(lastTime);
+                        var greaterThan = new Date(lastTime);
+                        greaterThan.setDate(greaterThan.getDate() - 200);
+                        return this.loadByDate(lessThan, greaterThan);
+                    }
+                    else {
+                        return Observable_1.Observable.create(function (ob) { ob.complete(); });
+                    }
+                };
+                ElasticService.prototype.loadByDate = function (lessThan, greaterThan) {
+                    var _this = this;
+                    var newBody = JSON.parse(this.currentRequest.body);
+                    var oldRequestGreaterThan;
+                    if (lessThan instanceof Date) {
+                        lessThan = lessThan.toISOString();
+                        greaterThan = greaterThan.toISOString();
+                    }
+                    var isSearch;
+                    if (newBody.query.hasOwnProperty('multi_match')) {
+                        var bodyforsearch = {
+                            "query": {
+                                "filtered": {
+                                    "query": {
+                                        "multi_match": newBody.query.multi_match
+                                    },
+                                    "filter": {
+                                        "range": {
+                                            '@timestamp': {
+                                                "gte": greaterThan,
+                                                "lte": lessThan
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                        newBody = bodyforsearch;
+                        isSearch = true;
+                    }
+                    else {
+                        newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
+                            "gte": greaterThan,
+                            "lte": lessThan
+                        };
+                        oldRequestGreaterThan = JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte;
+                    }
+                    var loadMoreObservable = Observable_1.Observable.create(function (observer) {
+                        if (!(oldRequestGreaterThan === greaterThan)) {
+                            _this.currentRequest.body = JSON.stringify(newBody);
+                            var observableAux = Observable_1.Observable.create(function (observeraux) { return _this.listAllLogs(_this.currentRequest, observeraux); });
+                            observableAux.subscribe(function (logs) {
+                                observer.next(logs);
+                            });
+                            if (isSearch) {
+                                observer.complete();
+                            }
+                        }
+                        else {
+                            console.log("No more results to fetch");
+                            observer.complete();
+                        }
+                    });
+                    return loadMoreObservable;
                 };
                 ElasticService.prototype.mapLogs = function (answer) {
                     var result = [];

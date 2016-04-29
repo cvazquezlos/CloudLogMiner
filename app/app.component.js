@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"], function(exports_1, context_1) {
+System.register(['angular2/core', 'ag-grid-ng2/main', './shared/DateUtils', "./shared/elastic.service"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, main_1, elastic_service_1;
+    var core_1, main_1, DateUtils_1, elastic_service_1;
     var AppComponent;
     return {
         setters:[
@@ -20,6 +20,9 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
             function (main_1_1) {
                 main_1 = main_1_1;
             },
+            function (DateUtils_1_1) {
+                DateUtils_1 = DateUtils_1_1;
+            },
             function (elastic_service_1_1) {
                 elastic_service_1 = elastic_service_1_1;
             }],
@@ -27,6 +30,8 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
             AppComponent = (function () {
                 function AppComponent(_elasticService) {
                     this._elasticService = _elasticService;
+                    this.defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
+                    this.defaultTo = new Date(new Date().valueOf() - (1 * 60 * 60 * 1000));
                     // we pass an empty gridOptions in, so we can grab the api out
                     this.gridOptions = {};
                     this.rowData = [];
@@ -34,6 +39,7 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                     this.createColumnDefs();
                     this.showGrid = true;
                     this.showLoadMore = true;
+                    this.searchByRelevance = false;
                 }
                 AppComponent.prototype.createRowData = function () {
                     var _this = this;
@@ -51,12 +57,24 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                 AppComponent.prototype.search = function (input) {
                     var _this = this;
                     //this.gridOptions.api.showLoadingOverlay();
-                    this.rowData = []; //RESTART ROW DATA or it will be append after default rows
-                    this._elasticService.search(input).subscribe(function (res) {
+                    this.rowData = []; //RESTART ROW DATA or it will be appended after default rows
+                    this._elasticService.search(input, this.searchByRelevance).subscribe(function (res) {
                         _this.gridOptions.api.hideOverlay();
                         _this.rowData = _this.rowData.concat(res);
                         _this.rowData = _this.rowData.slice();
                     }, function (err) { return console.log("Error in search" + err); }, function (complete) {
+                        console.log("Done");
+                        _this.showLoadMore = true;
+                    });
+                };
+                AppComponent.prototype.loadByDate = function (to, from) {
+                    var _this = this;
+                    this.rowData = [];
+                    this._elasticService.loadByDate(to, from).subscribe(function (res) {
+                        _this.gridOptions.api.hideOverlay();
+                        _this.rowData = _this.rowData.concat(res);
+                        _this.rowData = _this.rowData.slice();
+                    }, function (err) { return console.log("Error in loading by date" + err); }, function (complete) {
                         console.log("Done");
                         _this.showLoadMore = true;
                     });
@@ -87,9 +105,6 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                         }
                     };
                     this.columnDefs = [
-                        {
-                            headerName: '#', width: 30, checkboxSelection: false, pinned: true, editable: true
-                        },
                         {
                             headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
                         },
@@ -177,6 +192,13 @@ System.register(['angular2/core', 'ag-grid-ng2/main', "./shared/elastic.service"
                 // the method just prints the event name
                 AppComponent.prototype.onColumnEvent = function ($event) {
                     console.log('onColumnEvent: ' + $event);
+                };
+                // AUX METHODS ------------------------------
+                AppComponent.prototype.getDefaultFromValue = function () {
+                    return DateUtils_1.toInputLiteral(this.defaultFrom);
+                };
+                AppComponent.prototype.getDefaultToValue = function () {
+                    return DateUtils_1.toInputLiteral(this.defaultTo);
                 };
                 AppComponent = __decorate([
                     core_1.Component({

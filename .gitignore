@@ -3,4 +3,7 @@
 .DS_Store/
 node_modules/
 notas.docx
-built/
+app/*.js
+app/*.js.map
+app/**/*.js
+app/**/*.js.map
