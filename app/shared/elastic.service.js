@@ -137,7 +137,6 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', "rxj
                         body: JSON.stringify(body)
                     });
                     this.currentRequest = requestOptions;
-                    console.log(requestOptions);
                     var observable = Observable_1.Observable.create(function (observer) { return _this.listAllLogs(requestOptions, observer); });
                     return observable;
                 };

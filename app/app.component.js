@@ -67,6 +67,21 @@ System.register(['angular2/core', 'ag-grid-ng2/main', './shared/DateUtils', "./s
                         _this.showLoadMore = true;
                     });
                 };
+                AppComponent.prototype.mark = function (input) {
+                    var i = 0;
+                    for (var _i = 0, _a = this.rowData; _i < _a.length; _i++) {
+                        var row = _a[_i];
+                        for (var field in row) {
+                            if (row.hasOwnProperty(field)) {
+                                if (row[field].includes(input)) {
+                                    this.rowData[i].marked = true;
+                                }
+                            }
+                        }
+                        i++;
+                    }
+                    this.createColumnDefs();
+                };
                 AppComponent.prototype.loadByDate = function (to, from) {
                     var _this = this;
                     this.rowData = [];
@@ -93,38 +108,43 @@ System.register(['angular2/core', 'ag-grid-ng2/main', './shared/DateUtils', "./s
                     });
                 };
                 AppComponent.prototype.createColumnDefs = function () {
-                    var rowColor = function (params) {
+                    var logLevel = function (params) {
                         if (params.data.level === 'ERROR') {
-                            return 'log-level-error';
+                            return 'log-level-error ';
                         }
                         else if (params.data.level === 'WARN') {
-                            return 'log-level-warn';
+                            return 'log-level-warn ';
                         }
                         else {
                             return '';
                         }
                     };
+                    var marked = function (params) {
+                        if (params.data.marked) {
+                            return 'markedInFilter';
+                        }
+                    };
                     this.columnDefs = [
                         {
-                            headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
+                            headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false, cellClass: marked
                         },
                         {
-                            headerName: 'L', width: 60, checkboxSelection: false, field: "level", pinned: false, cellClass: rowColor
+                            headerName: 'L', width: 60, checkboxSelection: false, field: "level", pinned: false, cellClass: function (params) { return [logLevel(params), marked(params)]; }
                         },
                         {
-                            headerName: 'Type', width: 60, checkboxSelection: false, field: "type", pinned: false
+                            headerName: 'Type', width: 60, checkboxSelection: false, field: "type", pinned: false, cellClass: marked
                         },
                         {
-                            headerName: 'Thread', width: 170, checkboxSelection: false, field: "thread", pinned: false
+                            headerName: 'Thread', width: 170, checkboxSelection: false, field: "thread", pinned: false, cellClass: marked
                         },
                         {
-                            headerName: 'Message', width: 600, checkboxSelection: false, field: "message", pinned: false
+                            headerName: 'Message', width: 600, checkboxSelection: false, field: "message", pinned: false, cellClass: marked
                         },
                         {
-                            headerName: 'Logger', width: 300, checkboxSelection: false, field: "logger", pinned: false
+                            headerName: 'Logger', width: 300, checkboxSelection: false, field: "logger", pinned: false, cellClass: marked
                         },
                         {
-                            headerName: 'Host', width: 300, checkboxSelection: false, field: "host", pinned: false
+                            headerName: 'Host', width: 300, checkboxSelection: false, field: "host", pinned: false, cellClass: marked
                         }
                     ];
                 };

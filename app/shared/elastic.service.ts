@@ -52,7 +52,7 @@ export class ElasticService {
             });
     }
 
-    public listAllLogs(requestOptions:any, emitter):any {
+    public listAllLogs(requestOptions:any, emitter): void {
 
         this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
@@ -65,7 +65,6 @@ export class ElasticService {
             .subscribe(batch=> {
                 this.nResults=this.nResults+this.sizeOfPage;
                 emitter.next(batch);
-
                 if(this.nResults<this.maxResults && batch.length==this.sizeOfPage){         //if length is less than size of page there is no need for a scroll
                     let body2 = {
                         "scroll" : "1m",
@@ -139,7 +138,6 @@ export class ElasticService {
             body: JSON.stringify(body)
         });
         this.currentRequest = requestOptions;
-        console.log(requestOptions);
 
         let observable = Observable.create((observer) => this.listAllLogs(requestOptions, observer));
 
