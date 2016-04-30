@@ -52,7 +52,7 @@ export class ElasticService {
             });
     }
 
-    public listAllLogs(requestOptions:any, emitter):any {
+    public listAllLogs(requestOptions:any, emitter): void {
 
         this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
@@ -65,7 +65,6 @@ export class ElasticService {
             .subscribe(batch=> {
                 this.nResults=this.nResults+this.sizeOfPage;
                 emitter.next(batch);
-
                 if(this.nResults<this.maxResults && batch.length==this.sizeOfPage){         //if length is less than size of page there is no need for a scroll
                     let body2 = {
                         "scroll" : "1m",
@@ -139,7 +138,6 @@ export class ElasticService {
             body: JSON.stringify(body)
         });
         this.currentRequest = requestOptions;
-        console.log(requestOptions);
 
         let observable = Observable.create((observer) => this.listAllLogs(requestOptions, observer));
 
@@ -233,7 +231,7 @@ export class ElasticService {
             newBody=bodyforsearch;
             isSearch=true;
 
-        } else {
+        } else if (newBody.query.hasOwnProperty('filtered.filter')) {
             newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
                 "gte": greaterThan,
                 "lte": lessThan
@@ -242,12 +240,12 @@ export class ElasticService {
         }
 
         let loadMoreObservable = Observable.create((observer) => {
-            if (!(oldRequestGreaterThan === greaterThan)) {
+            if (!(oldRequestGreaterThan === greaterThan)) {         //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
                 let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
                 observableAux.subscribe(logs => {
                     observer.next(logs);
-                });
+                }, (err)=>console.log(err), ()=>{observer.complete()});
                 if(isSearch){
                     observer.complete();
                 }

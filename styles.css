@@ -1,4 +1,16 @@
 /* Master Styles */
+.log-level-error {
+  color: #FF0000;
+}
+
+.log-level-warn {
+  color: #F0AD4E;
+}
+
+.markedInFilter {
+    background-color: lightgoldenrodyellow;
+}
+
 h1 {
   color: #369; 
   font-family: Arial, Helvetica, sans-serif;   

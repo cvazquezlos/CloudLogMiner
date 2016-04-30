@@ -20,6 +20,7 @@ export class AppComponent {
     private rowCount: string;
     private showLoadMore: boolean;
     private searchByRelevance: boolean;
+    private currentFilter: string;
 
     private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
     private defaultTo = new Date(new Date().valueOf() - (1 * 60 * 60 * 1000));
@@ -52,7 +53,7 @@ export class AppComponent {
             });
     }
 
-    public search(input:string) {
+    public search(input: string) {
         //this.gridOptions.api.showLoadingOverlay();
         this.rowData=[];                //RESTART ROW DATA or it will be appended after default rows
         this._elasticService.search(input, this.searchByRelevance).subscribe((res)=>{
@@ -66,7 +67,23 @@ export class AppComponent {
             });
     }
 
-    public loadByDate(to, from){
+    public mark(input: string) {
+        let i=0;
+        for(let row of this.rowData) {
+            for(let field in row){
+                if (row.hasOwnProperty(field) && !row.marked) {        //Check that property doesn't belong to prototype and that it's not already marked
+                  if(row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
+                        this.rowData[i].marked=true;
+                    }
+                }
+            }
+            i++;
+        }
+        this.currentFilter = input;
+        this.gridOptions.api.softRefreshView();
+    }
+
+    public loadByDate(to: Date, from:Date){
         this.rowData=[];
         this._elasticService.loadByDate(to,from).subscribe((res) => {
             this.gridOptions.api.hideOverlay();
@@ -87,45 +104,55 @@ export class AppComponent {
             this.gridOptions.api.hideOverlay();
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
-        }, (err)=>console.log("Error in further fetching"+err),
+        }, (err)=>console.log("Error in further fetching"+ err),
             (complete)=>{
                 console.log("Done");
                 this.showLoadMore = false;
+                //Need to apply the marker
+                if(this.currentFilter) {
+                    this.mark(this.currentFilter);
+                }
             });
     }
 
     public createColumnDefs() {
-        let rowColor = function(params) {
+        let logLevel = (params) => {
             if (params.data.level === 'ERROR') {
-                return 'log-level-error';
+                return 'log-level-error '
             } else if (params.data.level === 'WARN') {
-                return 'log-level-warn';
+                return 'log-level-warn '
             } else {
                 return '';
             }
         };
 
+        let marked = (params) =>{
+            if(params.data.marked) {
+                return 'markedInFilter'
+            }
+        };
+
         this.columnDefs = [
             {
-                headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false
+                headerName: 'Time', width: 200, checkboxSelection: false, field: "time", pinned: false, volatile: true, cellClass: marked
             },
             {
-                headerName: 'L', width: 60, checkboxSelection: false, field: "level", pinned: false, cellClass: rowColor
+                headerName: 'L', width: 60, checkboxSelection: false, field: "level", pinned: false, volatile: true, cellClass: (params) => {return [logLevel(params),marked(params)]}
             },
             {
-                headerName: 'Type', width: 60, checkboxSelection: false, field: "type", pinned: false
+                headerName: 'Type', width: 60, checkboxSelection: false, field: "type", pinned: false, volatile: true, cellClass: marked
             },
             {
-                headerName: 'Thread', width: 170, checkboxSelection: false, field: "thread", pinned: false
+                headerName: 'Thread', width: 170, checkboxSelection: false, field: "thread", pinned: false, volatile: true, cellClass: marked
             },
             {
-                headerName: 'Message', width: 600, checkboxSelection: false, field: "message", pinned: false
+                headerName: 'Message', width: 600, checkboxSelection: false, field: "message", pinned: false, volatile: true, cellClass: marked
             },
             {
-                headerName: 'Logger', width: 300, checkboxSelection: false, field: "logger", pinned: false
+                headerName: 'Logger', width: 300, checkboxSelection: false, field: "logger", pinned: false, volatile: true, cellClass: marked
             },
             {
-                headerName: 'Host', width: 300, checkboxSelection: false, field: "host", pinned: false
+                headerName: 'Host', width: 300, checkboxSelection: false, field: "host", pinned: false, volatile: true, cellClass: marked
             }
         ];
     }
