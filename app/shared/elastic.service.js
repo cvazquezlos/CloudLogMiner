@@ -224,7 +224,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', "rxj
                         newBody = bodyforsearch;
                         isSearch = true;
                     }
-                    else {
+                    else if (newBody.query.hasOwnProperty('filtered.filter')) {
                         newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
                             "gte": greaterThan,
                             "lte": lessThan
@@ -237,7 +237,7 @@ System.register(["angular2/core", 'angular2/http', 'rxjs/add/operator/map', "rxj
                             var observableAux = Observable_1.Observable.create(function (observeraux) { return _this.listAllLogs(_this.currentRequest, observeraux); });
                             observableAux.subscribe(function (logs) {
                                 observer.next(logs);
-                            });
+                            }, function (err) { return console.log(err); }, function () { observer.complete(); });
                             if (isSearch) {
                                 observer.complete();
                             }

@@ -231,7 +231,7 @@ export class ElasticService {
             newBody=bodyforsearch;
             isSearch=true;
 
-        } else {
+        } else if (newBody.query.hasOwnProperty('filtered.filter')) {
             newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
                 "gte": greaterThan,
                 "lte": lessThan
@@ -240,12 +240,12 @@ export class ElasticService {
         }
 
         let loadMoreObservable = Observable.create((observer) => {
-            if (!(oldRequestGreaterThan === greaterThan)) {
+            if (!(oldRequestGreaterThan === greaterThan)) {         //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
                 let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
                 observableAux.subscribe(logs => {
                     observer.next(logs);
-                });
+                }, (err)=>console.log(err), ()=>{observer.complete()});
                 if(isSearch){
                     observer.complete();
                 }
