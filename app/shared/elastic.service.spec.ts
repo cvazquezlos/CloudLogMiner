@@ -135,7 +135,7 @@ describe('ElasticService', () => {
         });
     });
 
-    it('elasticLogProcessing should process example http answer into formatted logs', () => {
+    it('elasticLogProcessing should return a formatted log', () => {
         let toBeChecked = elasticService.elasticLogProcessing(fakeData.hits.hits[0]);
         var actual = Object.keys(toBeChecked).sort();
         var expected = [

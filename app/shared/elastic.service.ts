@@ -191,9 +191,9 @@ export class ElasticService {
     loadMore(lastLog: any){
         if(this.currentRequest) {
             let lastTime = lastLog.time || lastLog._source["@timestamp"];
-            let newBody = JSON.parse(this.currentRequest.body);
             let lessThan:Date = new Date(lastTime);
             let greaterThan:Date = new Date(lastTime);
+            console.log(greaterThan.toISOString());
             greaterThan.setDate(greaterThan.getDate() - 200);
             return this.loadByDate(lessThan, greaterThan)
         } else {
@@ -209,8 +209,8 @@ export class ElasticService {
             greaterThan = greaterThan.toISOString();
         }
 
-        let isSearch;
-        if (newBody.query.hasOwnProperty('multi_match')) {
+        let isSearch, notSupported;
+        if (newBody.query.hasOwnProperty("multi_match")) {
             let bodyforsearch = {
                 "query" :{
                     "filtered" : {
@@ -231,16 +231,19 @@ export class ElasticService {
             newBody=bodyforsearch;
             isSearch=true;
 
-        } else if (newBody.query.hasOwnProperty('filtered.filter')) {
+        } else if (newBody.query.hasOwnProperty('filtered')) {
             newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
                 "gte": greaterThan,
                 "lte": lessThan
             };
             oldRequestGreaterThan = JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte;
+        } else {
+            //Current request does not support load More:
+            notSupported = true;
         }
 
         let loadMoreObservable = Observable.create((observer) => {
-            if (!(oldRequestGreaterThan === greaterThan)) {         //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
+            if (!(oldRequestGreaterThan === greaterThan) && !notSupported) {     //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
                 let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
                 observableAux.subscribe(logs => {
@@ -250,7 +253,7 @@ export class ElasticService {
                     observer.complete();
                 }
             } else {
-                console.log("No more results to fetch");
+                console.log("No more results to fetch or request not supported.");
                 observer.complete()
             }
         });
