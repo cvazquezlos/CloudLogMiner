@@ -191,10 +191,8 @@ export class ElasticService {
     loadMore(lastLog: any){
         if(this.currentRequest) {
             let lastTime = lastLog.time || lastLog._source["@timestamp"];
-            let lessThan:Date = new Date(lastTime);
-            let greaterThan:Date = new Date(lastTime);
-            console.log(greaterThan.toISOString());
-            greaterThan.setDate(greaterThan.getDate() - 200);
+            let lessThan = lastTime;
+            let greaterThan = lastTime+"||-200d";           //"Date Math starts with an anchor date, which can either be now, or a date string ending with || (ElasticSearch)"
             return this.loadByDate(lessThan, greaterThan)
         } else {
             return Observable.create((ob) => {ob.complete()});
@@ -204,10 +202,6 @@ export class ElasticService {
     loadByDate(lessThan, greaterThan) {
         let newBody = JSON.parse(this.currentRequest.body);
         let oldRequestGreaterThan;
-        if(lessThan instanceof Date){
-            lessThan = lessThan.toISOString();
-            greaterThan = greaterThan.toISOString();
-        }
 
         let isSearch, notSupported;
         if (newBody.query.hasOwnProperty("multi_match")) {
