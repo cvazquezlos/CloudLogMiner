@@ -4,7 +4,7 @@
 import {describe, it, expect, inject, beforeEach, beforeEachProviders} from 'angular2/testing'; //Very important to import angular2 specific ones
 import {ElasticService} from "./elastic.service";
 import {
-    HTTP_PROVIDERS, Http, ResponseOptions, Response, BaseRequestOptions, XHRBackend,
+    HTTP_PROVIDERS, ResponseOptions, Response, BaseRequestOptions, XHRBackend,
     RequestOptions, RequestMethod
 } from 'angular2/http';
 import 'rxjs/add/operator/map';
@@ -38,6 +38,7 @@ describe('ElasticService', () => {
     it('getRowsDefault should return 40 logs', () => {
         elasticService.getRowsDefault().subscribe(rows => {
             expect(rows.length).toBe(40);
+            console.log(JSON.stringify(rows));
         });
     });
 
@@ -132,6 +133,22 @@ describe('ElasticService', () => {
         elasticService.search("test", false).subscribe(r => {
             expect(elasticService.listAllLogs).toHaveBeenCalledWith(requestOptions2, jasmine.anything());
             expect(r.length).toBe(40);
+        });
+    });
+
+    describe('loadMore', () => {
+        describe('during a default request', () => {
+            it('should create a correct date interval, older than the current', () => {
+               //TODO
+                // Lo que realmente queremos testear aquí no es que el string que mandemos sea el correcto (lo será, es sólo añadir -200) sino cómo lo trata elasticsearch. eso solo podriamos hacerlo en un enToEnd test
+                //¿Qué debemos testear entonces?
+            });
+        });
+        describe('during a search request', () => {
+            
+        });
+        describe('during an unsupported request', () => {
+            
         });
     });
 
