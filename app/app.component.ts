@@ -41,6 +41,7 @@ export class AppComponent {
 
     public createRowData(){
         //this.gridOptions.api.showLoadingOverlay();
+        this.rowData=[];
         this._elasticService.getRowsDefault()
             .subscribe((res)=>{
                 this.gridOptions.api.hideOverlay();
@@ -73,8 +74,10 @@ export class AppComponent {
             for(let field in row){
                 if (row.hasOwnProperty(field) && !row.marked) {        //Check that property doesn't belong to prototype and that it's not already marked
                   if(row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
-                        this.rowData[i].marked=true;
-                    }
+                        this.rowData[i].marked = true;
+                  } else {
+                      this.rowData[i].marked = false;
+                  }
                 }
             }
             i++;

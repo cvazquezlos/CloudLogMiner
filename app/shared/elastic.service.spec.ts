@@ -13,6 +13,11 @@ import {fakeD} from './../fakeData';
 import {provide} from 'angular2/core';
 import {Observable} from "rxjs/Observable";
 
+/*
+Please note that the function loadMore is tested along with each of the possible preceding functions. This decision was purely by convenience as its behaviour depends on the service state.
+ElasticService state relies heavily in currentRequest property, as load more and date queries use it to be consistent with the previous request.
+ */
+
 describe('ElasticService', () => {
     let elasticService;
     let fakeData = fakeD;
@@ -35,9 +40,38 @@ describe('ElasticService', () => {
         expect(elasticService.sizeOfPage).toBe(10);
     });
 
-    it('getRowsDefault should return 40 logs', () => {
-        elasticService.getRowsDefault().subscribe(rows => {
-            expect(rows.length).toBe(40);
+
+    describe('getRowsDefault', () => {
+        it('should return 40 logs', () => {
+            elasticService.getRowsDefault().subscribe(rows => {
+                expect(rows.length).toBe(40);
+            });
+        });
+        it('should be consistent with loadMore', () => {
+            //First it happens
+            elasticService.getRowsDefault();
+            /*
+            It changes the service state, by updating currentRequest.
+            Now we are able to test loadMore.
+             */
+            let lastLog = fakeData.hits.hits[0];
+            spyOn(elasticService, 'loadByDate').and.callThrough();
+            spyOn(elasticService, 'listAllLogs').and.callThrough();
+            let lt = "2016-04-17T07:10:55.601Z";    //static fake data, earlier than lastLog
+            let gt = "2016-04-17T08:06:55.601Z";
+            let fakeBody = JSON.parse(elasticService.currentRequest.body);
+            //listAllLogs gives away a "now" parameter to be interpreted by elasticSearch. We would rather fake it
+            fakeBody["query"].filtered.filter.bool.must[0].range['@timestamp']={
+                "gte": gt,
+                "lte": lt
+            };
+            elasticService.currentRequest.body = JSON.stringify(fakeBody);
+            elasticService.loadMore(elasticService.elasticLogProcessing(lastLog)).subscribe(() => {
+                lt = "2016-04-17T08:10:55.601Z";    //static fake data consistent with lastLog (changes in variable requestOptions)
+                gt = "2016-04-17T08:10:55.601Z||-200d";
+                expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt);
+                expect(elasticService.listAllLogs).toHaveBeenCalledWith(elasticService.currentRequest, jasmine.anything());
+            });
         });
     });
 
@@ -103,35 +137,78 @@ describe('ElasticService', () => {
         });
     });
 
-    it('search should fabricate the correct arguments for the listAllLogs http call', () => {
-        elasticService.sizeOfPage = 40;
-        let body = {
-            "query":{
-                "multi_match": {
-                    "query":"test",
-                    "type":"best_fields",
-                    "fields": ["type", "host", "message", elasticService.fields.level, elasticService.fields.logger, elasticService.fields.thread],         //Not filter by time: parsing user input would be required
-                    "tie_breaker":0.3,
-                    "minimum_should_match":"30%"
-                }
-            },
-            size:40,
-            sort: [{ '@timestamp': 'desc'}]
-        };
-        let url = 'http://127.0.0.1:9200/<logstash-*>' + '/_search?scroll=1m';
+    describe('search', () => {
+        it('should fabricate the correct arguments for the http call', () => {
+            elasticService.sizeOfPage = 40;
+            let body = {
+                "query":{
+                    "multi_match": {
+                        "query":"test",
+                        "type":"best_fields",
+                        "fields": ["type", "host", "message", elasticService.fields.level, elasticService.fields.logger, elasticService.fields.thread],         //Not filter by time: parsing user input would be required
+                        "tie_breaker":0.3,
+                        "minimum_should_match":"30%"
+                    }
+                },
+                size:40,
+                sort: [{ '@timestamp': 'desc'}]
+            };
+            let url = 'http://127.0.0.1:9200/<logstash-*>' + '/_search?scroll=1m';
 
-        let requestOptions2 = new RequestOptions({
-            method: RequestMethod.Post,
-            url,
-            body: JSON.stringify(body)
+            let requestOptions2 = new RequestOptions({
+                method: RequestMethod.Post,
+                url,
+                body: JSON.stringify(body)
+            });
+
+            /*A spy is needed to check if listAllLogs is called with proper arguments. spyOn would make the method null, and thus it would not emmit anything. Search's inner subscribe to the spied listAllLogs would never be reached. We use "and.callThrough to execute the spied method nevertheless*/
+
+            spyOn(elasticService, 'listAllLogs').and.callThrough();
+            elasticService.search("test", false).subscribe(r => {
+                expect(elasticService.listAllLogs).toHaveBeenCalledWith(requestOptions2, jasmine.anything());
+                expect(r.length).toBe(40);
+            });
         });
 
-        /*A spy is needed to check if listAllLogs is called with proper arguments. spyOn would make the method null, and thus it would not emmit anything. Search's inner subscribe to the spied listAllLogs would never be reached. We use "and.callThrough to execute the spied method nevertheless*/
-
-        spyOn(elasticService, 'listAllLogs').and.callThrough();
-        elasticService.search("test", false).subscribe(r => {
-            expect(elasticService.listAllLogs).toHaveBeenCalledWith(requestOptions2, jasmine.anything());
-            expect(r.length).toBe(40);
+        it('should be consistent with loadMore', () => {
+            //First it happens
+            elasticService.search("test", false);
+            /*
+             It changes the service state, by updating currentRequest.
+             Now we are able to test loadMore.
+             */
+            let lastLog = fakeData.hits.hits[0];
+            spyOn(elasticService, 'loadByDate').and.callThrough();
+            spyOn(elasticService, 'listAllLogs').and.callThrough();
+                
+            elasticService.loadMore(elasticService.elasticLogProcessing(lastLog)).subscribe(() => {
+                let lt = "2016-04-17T08:10:55.601Z";    //static fake data, consistent with lastLog
+                let gt = "2016-04-17T08:10:55.601Z||-200d";
+                let expectedBody = {
+                    "query" :{
+                    "filtered" : {
+                        "query" : {
+                            "multi_match" : "test"
+                        },
+                        "filter" : {
+                            "range": {
+                                '@timestamp': {
+                                    "gte": gt,
+                                    "lte": lt
+                                }
+                            }
+                        }
+                    }
+                },
+                    sort: [
+                        { "@timestamp": "desc" }
+                    ]
+                };
+                let expectedRequest = elasticService.currentRequest;
+                expectedRequest.body = expectedBody;
+                expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt);
+                expect(elasticService.listAllLogs).toHaveBeenCalledWith(expectedRequest, jasmine.anything());
+            });
         });
     });
 
