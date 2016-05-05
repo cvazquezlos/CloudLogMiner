@@ -4,7 +4,7 @@
 import {describe, it, expect, inject, beforeEach, beforeEachProviders} from 'angular2/testing'; //Very important to import angular2 specific ones
 import {ElasticService} from "./elastic.service";
 import {
-    HTTP_PROVIDERS, Http, ResponseOptions, Response, BaseRequestOptions, XHRBackend,
+    HTTP_PROVIDERS, ResponseOptions, Response, BaseRequestOptions, XHRBackend,
     RequestOptions, RequestMethod
 } from 'angular2/http';
 import 'rxjs/add/operator/map';
@@ -39,7 +39,6 @@ describe('ElasticService', () => {
     it('has sizeOfPage 10', () => {
         expect(elasticService.sizeOfPage).toBe(10);
     });
-
 
     describe('getRowsDefault', () => {
         it('should return 40 logs', () => {
@@ -211,6 +210,7 @@ describe('ElasticService', () => {
             });
         });
     });
+    
 
     it('elasticLogProcessing should return a formatted log', () => {
         let toBeChecked = elasticService.elasticLogProcessing(fakeData.hits.hits[0]);

@@ -192,7 +192,7 @@ export class ElasticService {
         if(this.currentRequest) {
             let lastTime = lastLog.time || lastLog._source["@timestamp"];
             let lessThan = lastTime;
-            let greaterThan = lastTime+"||-200d";           //"Date Math starts with an anchor date, which can either be now, or a date string ending with || (ElasticSearch)"
+            let greaterThan = lastTime+"||-200d";           //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
             return this.loadByDate(lessThan, greaterThan)
         } else {
             return Observable.create((ob) => {ob.complete()});

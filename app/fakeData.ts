@@ -709,13 +709,13 @@ export let fakeD =
             },
             {
                 "_source": {
-                    "@timestamp": "2016-04-17T08:01:35.597Z",
-                    "message": "2016-04-17 08:01:35,597 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+                    "@timestamp": "2016-04-12T08:01:35.597Z",
+                    "message": "2016-04-12 08:01:35,597 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
                     "@version": "1",
                     "path": "/var/log/kurento/kmscluster-controller.log",
                     "host": "kms-room-ip-10-0-20-47",
                     "type": "cluster",
-                    "logdate": "2016-04-17 08:01:35,597",
+                    "logdate": "2016-04-12 08:01:35,597",
                     "loglevel": "INFO",
                     "threadid": "Timer-0",
                     "loggername": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
@@ -729,13 +729,13 @@ export let fakeD =
             },
             {
                 "_source": {
-                    "@timestamp": "2016-04-17T08:00:45.605Z",
-                    "message": "2016-04-17 08:00:45,605 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+                    "@timestamp": "2016-04-12T08:00:45.605Z",
+                    "message": "2016-04-12 08:00:45,605 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
                     "@version": "1",
                     "path": "/var/log/kurento/kmscluster-controller.log",
                     "host": "kms-room-ip-10-0-20-47",
                     "type": "cluster",
-                    "logdate": "2016-04-17 08:00:45,605",
+                    "logdate": "2016-04-12 08:00:45,605",
                     "loglevel": "INFO",
                     "threadid": "Timer-0",
                     "loggername": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
@@ -749,13 +749,13 @@ export let fakeD =
             },
             {
                 "_source": {
-                    "@timestamp": "2016-04-17T08:00:43.466Z",
-                    "message": "2016-04-17 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.PingWatchdogManager org.kurento.jsonrpc.internal.server.PingWatchdogManager (removeSession(140)) - Removed PingWatchdogSession for transportId bf9a",
+                    "@timestamp": "2016-04-12T08:00:43.466Z",
+                    "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.PingWatchdogManager org.kurento.jsonrpc.internal.server.PingWatchdogManager (removeSession(140)) - Removed PingWatchdogSession for transportId bf9a",
                     "@version": "1",
                     "path": "/var/log/kurento/kmscluster-controller.log",
                     "host": "kms-room-ip-10-0-20-47",
                     "type": "cluster",
-                    "logdate": "2016-04-17 08:00:43,466",
+                    "logdate": "2016-04-12 08:00:43,466",
                     "loglevel": "INFO",
                     "threadid": "jsonrpcTaskScheduler-1",
                     "loggername": "org.kurento.jsonrpc.internal.server.PingWatchdogManager",
@@ -769,13 +769,13 @@ export let fakeD =
             },
             {
                 "_source": {
-                    "@timestamp": "2016-04-17T08:00:43.466Z",
-                    "message": "2016-04-17 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler (afterConnectionClosed(519)) - Closing websocket client for session: 56si1vieo3oa1l4nui0omo9ru1",
+                    "@timestamp": "2016-04-12T08:00:43.466Z",
+                    "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler (afterConnectionClosed(519)) - Closing websocket client for session: 56si1vieo3oa1l4nui0omo9ru1",
                     "@version": "1",
                     "path": "/var/log/kurento/kmscluster-controller.log",
                     "host": "kms-room-ip-10-0-20-47",
                     "type": "cluster",
-                    "logdate": "2016-04-17 08:00:43,466",
+                    "logdate": "2016-04-12 08:00:43,466",
                     "loglevel": "INFO",
                     "threadid": "jsonrpcTaskScheduler-1",
                     "loggername": "org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler",
@@ -789,13 +789,13 @@ export let fakeD =
             },
             {
                 "_source": {
-                    "@timestamp": "2016-04-17T08:00:43.466Z",
-                    "message": "2016-04-17 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kms.controller.KurentoClientJsonRpcHandler org.kurento.kms.controller.KurentoClientJsonRpcHandler (afterConnectionClosed(27)) - Client session 56si1vieo3oa1l4nui0omo9ru1 closed",
+                    "@timestamp": "2016-04-12T08:00:43.466Z",
+                    "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kms.controller.KurentoClientJsonRpcHandler org.kurento.kms.controller.KurentoClientJsonRpcHandler (afterConnectionClosed(27)) - Client session 56si1vieo3oa1l4nui0omo9ru1 closed",
                     "@version": "1",
                     "path": "/var/log/kurento/kmscluster-controller.log",
                     "host": "kms-room-ip-10-0-20-47",
                     "type": "cluster",
-                    "logdate": "2016-04-17 08:00:43,466",
+                    "logdate": "2016-04-12 08:00:43,466",
                     "loglevel": "INFO",
                     "threadid": "jsonrpcTaskScheduler-1",
                     "loggername": "org.kurento.kms.controller.KurentoClientJsonRpcHandler",
@@ -810,3 +810,286 @@ export let fakeD =
         ]
     }
 };
+
+export let fakeRowsProcessed = [
+    {
+        "time": "2016-04-17T08:10:55.601Z",
+        "message": "2016-04-17 08:10:55,601 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:49.705Z",
+        "message": "2016-04-17 08:09:49,705 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.PingWatchdogManager org.kurento.jsonrpc.internal.server.PingWatchdogManager (removeSession(140)) - Removed PingWatchdogSession for transportId bf9f",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.jsonrpc.internal.server.PingWatchdogManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:49.705Z",
+        "message": "2016-04-17 08:09:49,705 INFO  [jsonrpcTaskScheduler-1] org.kurento.kms.controller.KurentoClientJsonRpcHandler org.kurento.kms.controller.KurentoClientJsonRpcHandler (afterConnectionClosed(27)) - Client session qs85fogv0mi7iirtuo88g9te65 closed",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kms.controller.KurentoClientJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:37.566Z",
+        "message": "2016-04-17 08:09:37,566 DEBUG [http-nio-8888-exec-10] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler$SessionFacade (setSession(118)) - Session qs85fogv0mi7iirtuo88g9te65 is connected to this node 3bd8fc70-6892-4265-9bb9-00fae774540c (awsInstanceId=i-c1155449, member=Member [10.0.20.47]:5701 this)",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-10",
+        "logger": "org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:37.417Z",
+        "message": "2016-04-17 08:09:37,417 INFO  [http-nio-8888-exec-1] org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler (afterConnectionEstablished(55)) - [KmsClusterControllerApp]  Client connection stablished from session=/127.0.0.1:39197 uri=/kurento headers={upgrade=[websocket], connection=[upgrade], host=[127.0.0.1:8888], sec-websocket-key=[Eg4F0BFBuvL2H2hysm8q6w==], sec-websocket-version=[13], pragma=[no-cache], cache-control=[no-cache]} acceptedProtocol= attributes={}",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-1",
+        "logger": "org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:15.601Z",
+        "message": "2016-04-17 08:09:15,601 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:09:05.595Z",
+        "message": "2016-04-17 08:09:05,595 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:08:45.599Z",
+        "message": "2016-04-17 08:08:45,599 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:08:35.603Z",
+        "message": "2016-04-17 08:08:35,603 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:08:15.599Z",
+        "message": "2016-04-17 08:08:15,599 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:29.518Z",
+        "message": "2016-04-17 08:07:29,518 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (closeSession(430)) - [KmsClusterControllerApp]  Removing session sc0predcop9vmqohl0g22qvio with transportId bf9e in ProtocolManager",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:19.518Z",
+        "message": "2016-04-17 08:07:19,518 INFO  [http-nio-8888-exec-9] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (closeSessionIfTimeout(408)) - [KmsClusterControllerApp] Configuring close timeout for session: sc0predcop9vmqohl0g22qvio transportId: bf9e at 04-17-2016 08:07:29,518",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-9",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:19.517Z",
+        "message": "2016-04-17 08:07:19,517 INFO  [http-nio-8888-exec-9] org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler (afterConnectionClosed(83)) - [KmsClusterControllerApp]  WebSocket session sc0predcop9vmqohl0g22qvio with transportId bf9e closed for GOING_AWAY (code 1001, reason 'Shutdown')",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-9",
+        "logger": "org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:17.438Z",
+        "message": "2016-04-17 08:07:17,438 DEBUG [http-nio-8888-exec-6] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (processRequestMessage(183)) - [KmsClusterControllerApp]  Req-> {\"id\":2,\"method\":\"invoke\",\"params\":{\"object\":\"manager_ServerManager\",\"operation\":\"getMetadata\"},\"jsonrpc\":\"2.0\"} [jsonRpcSessionId=sc0predcop9vmqohl0g22qvio, transportId=bf9e]",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-6",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:15.600Z",
+        "message": "2016-04-17 08:07:15,600 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:07:15.392Z",
+        "message": "2016-04-17 08:07:15,392973 28435 [0x00007f867fc26700]   debug KurentoMediaSet           MediaSet.cpp:131 doGarbageCollection()  Running garbage collector",
+        "level": "debug",
+        "thread": "0x00007f867fc26700",
+        "logger": "KurentoMediaSet",
+        "host": "kms-room-ip-10-0-20-46"
+    }, {
+        "time": "2016-04-17T08:06:05.994Z",
+        "message": "2016-04-17 08:06:05,994 INFO  [jsonrpcTaskScheduler-1] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler (afterConnectionClosed(519)) - Closing websocket client for session: 3dk1up96r5c5nluca1l7ie1blv",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:06:05.993Z",
+        "message": "2016-04-17 08:06:05,993 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (closeSession(430)) - [KmsClusterControllerApp]  Removing session 3dk1up96r5c5nluca1l7ie1blv with transportId bf9d in ProtocolManager",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:05:55.993Z",
+        "message": "2016-04-17 08:05:55,993 INFO  [http-nio-8888-exec-2] org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler (afterConnectionClosed(83)) - [KmsClusterControllerApp]  WebSocket session 3dk1up96r5c5nluca1l7ie1blv with transportId bf9d closed for GOING_AWAY (code 1001, reason 'Shutdown')",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-2",
+        "logger": "org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:05:53.916Z",
+        "message": "2016-04-17 08:05:53,916 DEBUG [http-nio-8888-exec-9] org.kurento.kmscluster.controller.ClusterJsonRpcHandler org.kurento.kmscluster.controller.ClusterJsonRpcHandler (selectNodeForProcessingRequest(43)) - Processing request: {\"id\":2,\"method\":\"invoke\",\"params\":{\"object\":\"manager_ServerManager\",\"operation\":\"getMetadata\"},\"jsonrpc\":\"2.0\"}",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-9",
+        "logger": "org.kurento.kmscluster.controller.ClusterJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:05:39.054Z",
+        "message": "2016-04-17 08:05:39,054 ERROR [http-nio-8888-exec-5] org.springframework.web.socket.server.support.DefaultHandshakeHandler org.springframework.web.socket.server.support.AbstractHandshakeHandler (handleInvalidUpgradeHeader(287)) - Handshake failed due to invalid Upgrade header: null",
+        "level": "ERROR",
+        "thread": "http-nio-8888-exec-5",
+        "logger": "org.springframework.web.socket.server.support.DefaultHandshakeHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:45.743Z",
+        "message": "2016-04-17 08:04:45,743 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:35.599Z",
+        "message": "2016-04-17 08:04:35,599 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:28.685Z",
+        "message": "2016-04-17 08:04:28,685 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (closeSession(430)) - [KmsClusterControllerApp]  Removing session kqv418bm0okqrabiga8antnj0h with transportId bf9c in ProtocolManager",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:28.685Z",
+        "message": "2016-04-17 08:04:28,685 INFO  [jsonrpcTaskScheduler-1] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler (afterConnectionClosed(519)) - Closing websocket client for session: kqv418bm0okqrabiga8antnj0h",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:28.685Z",
+        "message": "2016-04-17 08:04:28,685 INFO  [jsonrpcTaskScheduler-1] org.kurento.kms.controller.KurentoClientJsonRpcHandler org.kurento.kms.controller.KurentoClientJsonRpcHandler (afterConnectionClosed(27)) - Client session kqv418bm0okqrabiga8antnj0h closed",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kms.controller.KurentoClientJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:16.547Z",
+        "message": "2016-04-17 08:04:16,547 DEBUG [http-nio-8888-exec-6] org.kurento.commons.ConfigFilePropertyHolder org.kurento.commons.ConfigFilePropertyHolder (getProperty(130)) - Found ws.sessionReconnectionTime in config file /etc/kurento/kmscluster-controller.conf.json",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-6",
+        "logger": "org.kurento.commons.ConfigFilePropertyHolder",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:04:16.304Z",
+        "message": "2016-04-17 08:04:16,304 INFO  [http-nio-8888-exec-7] org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler (afterConnectionEstablished(55)) - [KmsClusterControllerApp]  Client connection stablished from session=/127.0.0.1:39187 uri=/kurento headers={upgrade=[websocket], connection=[upgrade], host=[127.0.0.1:8888], sec-websocket-key=[0VwethHBpL4yO6+xrlqhDQ==], sec-websocket-version=[13], pragma=[no-cache], cache-control=[no-cache]} acceptedProtocol= attributes={}",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-7",
+        "logger": "org.kurento.jsonrpc.internal.ws.JsonRpcWebSocketHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:02:55.598Z",
+        "message": "2016-04-17 08:02:55,598 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:02:15.599Z",
+        "message": "2016-04-17 08:02:15,599 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:02:08.557Z",
+        "message": "2016-04-17 08:02:08,557 INFO  [http-nio-8888-exec-4] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (closeSessionIfTimeout(408)) - [KmsClusterControllerApp] Configuring close timeout for session: sje9lm2ddefl7kg90edekqfiro transportId: bf9b at 04-17-2016 08:02:18,557",
+        "level": "INFO",
+        "thread": "http-nio-8888-exec-4",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:02:06.647Z",
+        "message": "2016-04-17 08:02:06,647210 6794 [0x00007ff6e5d03700]   debug KurentoMediaSet           MediaSet.cpp:131 doGarbageCollection()  Running garbage collector",
+        "level": "debug",
+        "thread": "0x00007ff6e5d03700",
+        "logger": "KurentoMediaSet",
+        "host": "kms-room-ip-10-0-20-46"
+    }, {
+        "time": "2016-04-17T08:02:06.476Z",
+        "message": "2016-04-17 08:02:06,476 DEBUG [http-nio-8888-exec-3] org.kurento.kms.controller.KmsController org.kurento.kms.controller.KmsController (processKmsRequest(119)) - Processing SERVER_MANAGER request: {\"id\":2,\"method\":\"invoke\",\"params\":{\"object\":\"manager_ServerManager\",\"operation\":\"getMetadata\"},\"jsonrpc\":\"2.0\"}",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-3",
+        "logger": "org.kurento.kms.controller.KmsController",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:02:06.474Z",
+        "message": "2016-04-17 08:02:06,474 DEBUG [http-nio-8888-exec-3] org.kurento.jsonrpc.internal.server.ProtocolManager org.kurento.jsonrpc.internal.server.ProtocolManager (processRequestMessage(183)) - [KmsClusterControllerApp]  Req-> {\"id\":2,\"method\":\"invoke\",\"params\":{\"object\":\"manager_ServerManager\",\"operation\":\"getMetadata\"},\"jsonrpc\":\"2.0\"} [jsonRpcSessionId=sje9lm2ddefl7kg90edekqfiro, transportId=bf9b]",
+        "level": "DEBUG",
+        "thread": "http-nio-8888-exec-3",
+        "logger": "org.kurento.jsonrpc.internal.server.ProtocolManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-17T08:01:48.709Z",
+        "message": "2016-04-17 08:01:48,709 ERROR [http-nio-8888-exec-5] org.springframework.web.socket.server.support.DefaultHandshakeHandler org.springframework.web.socket.server.support.AbstractHandshakeHandler (handleInvalidUpgradeHeader(287)) - Handshake failed due to invalid Upgrade header: null",
+        "level": "ERROR",
+        "thread": "http-nio-8888-exec-5",
+        "logger": "org.springframework.web.socket.server.support.DefaultHandshakeHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-12T08:01:35.597Z",
+        "message": "2016-04-12 08:01:35,597 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-12T08:00:45.605Z",
+        "message": "2016-04-12 08:00:45,605 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",
+        "level": "INFO",
+        "thread": "Timer-0",
+        "logger": "org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-12T08:00:43.466Z",
+        "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.jsonrpc.internal.server.PingWatchdogManager org.kurento.jsonrpc.internal.server.PingWatchdogManager (removeSession(140)) - Removed PingWatchdogSession for transportId bf9a",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.jsonrpc.internal.server.PingWatchdogManager",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-12T08:00:43.466Z",
+        "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler (afterConnectionClosed(519)) - Closing websocket client for session: 56si1vieo3oa1l4nui0omo9ru1",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kmscluster.hazelcast.jsonrpc.AbstractHazelcastClusterJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }, {
+        "time": "2016-04-12T08:00:43.466Z",
+        "message": "2016-04-12 08:00:43,466 INFO  [jsonrpcTaskScheduler-1] org.kurento.kms.controller.KurentoClientJsonRpcHandler org.kurento.kms.controller.KurentoClientJsonRpcHandler (afterConnectionClosed(27)) - Client session 56si1vieo3oa1l4nui0omo9ru1 closed",
+        "level": "INFO",
+        "thread": "jsonrpcTaskScheduler-1",
+        "logger": "org.kurento.kms.controller.KurentoClientJsonRpcHandler",
+        "host": "kms-room-ip-10-0-20-47"
+    }];
