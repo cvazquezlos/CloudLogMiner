@@ -31,7 +31,7 @@ export class AppComponent {
         this.gridOptions = <GridOptions>{
             //enableServerSideSorting: true
         };
-        this.rowData=[];
+        //this.rowData=[];
         this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
@@ -55,7 +55,7 @@ export class AppComponent {
     }
 
     public search(input: string) {
-        //this.gridOptions.api.showLoadingOverlay();
+        this.gridOptions.api.showLoadingOverlay();
         this.rowData=[];                //RESTART ROW DATA or it will be appended after default rows
         this._elasticService.search(input, this.searchByRelevance).subscribe((res)=>{
             this.gridOptions.api.hideOverlay();
@@ -71,13 +71,16 @@ export class AppComponent {
     public mark(input: string) {
         let i=0;
         for(let row of this.rowData) {
-            for(let field in row){
-                if (row.hasOwnProperty(field) && !row.marked) {        //Check that property doesn't belong to prototype and that it's not already marked
-                  if(row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
-                        this.rowData[i].marked = true;
-                  } else {
-                      this.rowData[i].marked = false;
-                  }
+            if(!row.marked) {
+                for (let field in row) {
+                    if (row.hasOwnProperty(field) && field != "marked") {        //Check that property doesn't belong to prototype & boolean cannot be searched
+                        if (row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
+                            this.rowData[i].marked = true;
+                            break;
+                        } else {
+                            this.rowData[i].marked = false;
+                        }
+                    }
                 }
             }
             i++;
@@ -87,6 +90,7 @@ export class AppComponent {
     }
 
     public loadByDate(to: Date, from:Date){
+        this.gridOptions.api.showLoadingOverlay();
         this.rowData=[];
         this._elasticService.loadByDate(to,from).subscribe((res) => {
             this.gridOptions.api.hideOverlay();
@@ -100,6 +104,7 @@ export class AppComponent {
     }
 
     public loadMore() {
+        this.gridOptions.api.showLoadingOverlay();
         let r = this.rowCount.split("/");
         let lastLog = this.rowData[parseInt(r[0])-1];
 
