@@ -4,6 +4,7 @@
         <div style="float: right;">
             <input #searchinput type="text" id="searchInput" placeholder="Type text to query..."/>
             <button (click)="search(searchinput.value)" class="btn btn-default">Search</button>
+            <button (click)="mark(searchinput.value)" class="btn btn-default">Mark</button>
             <button [disabled]="!showGrid" (click)="showGrid=false" class="btn btn-default">Destroy Grid</button>
             <button [disabled]="showGrid" (click)="showGrid=true" class="btn btn-default">Create Grid</button>
         </div>

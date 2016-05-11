@@ -52,7 +52,7 @@ export class ElasticService {
             });
     }
 
-    public listAllLogs(requestOptions:any, emitter):any {
+    public listAllLogs(requestOptions:any, emitter): void {
 
         this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
@@ -65,7 +65,6 @@ export class ElasticService {
             .subscribe(batch=> {
                 this.nResults=this.nResults+this.sizeOfPage;
                 emitter.next(batch);
-
                 if(this.nResults<this.maxResults && batch.length==this.sizeOfPage){         //if length is less than size of page there is no need for a scroll
                     let body2 = {
                         "scroll" : "1m",
@@ -188,13 +187,12 @@ export class ElasticService {
         return observable;
     }
 
+
     loadMore(lastLog: any){
         if(this.currentRequest) {
             let lastTime = lastLog.time || lastLog._source["@timestamp"];
-            let newBody = JSON.parse(this.currentRequest.body);
-            let lessThan:Date = new Date(lastTime);
-            let greaterThan:Date = new Date(lastTime);
-            greaterThan.setDate(greaterThan.getDate() - 200);
+            let lessThan = lastTime;
+            let greaterThan = lastTime+"||-200d";           //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
             return this.loadByDate(lessThan, greaterThan)
         } else {
             return Observable.create((ob) => {ob.complete()});
@@ -204,13 +202,8 @@ export class ElasticService {
     loadByDate(lessThan, greaterThan) {
         let newBody = JSON.parse(this.currentRequest.body);
         let oldRequestGreaterThan;
-        if(lessThan instanceof Date){
-            lessThan = lessThan.toISOString();
-            greaterThan = greaterThan.toISOString();
-        }
-
-        let isSearch;
-        if (newBody.query.hasOwnProperty('multi_match')) {
+        let isSearch, notSupported;
+        if (newBody.query.hasOwnProperty("multi_match")) {
             let bodyforsearch = {
                 "query" :{
                     "filtered" : {
@@ -226,31 +219,41 @@ export class ElasticService {
                             }
                         }
                     }
-                }
+                },
+                sort: [
+                    { "@timestamp": "desc" }
+                ]
             };
             newBody=bodyforsearch;
             isSearch=true;
 
-        } else {
+        } else if (newBody.query.filtered.filter.hasOwnProperty('bool')) {
             newBody.query.filtered.filter.bool.must[0].range["@timestamp"] = {
                 "gte": greaterThan,
                 "lte": lessThan
             };
             oldRequestGreaterThan = JSON.parse(this.currentRequest.body).query.filtered.filter.bool.must[0].range["@timestamp"].gte;
-        }
+        } else if (newBody.query.filtered.filter.hasOwnProperty("range")){
+            //Request was originally a search with a date, so it was modified in the first if, it has different fields.
+            newBody.query.filtered.filter.range['@timestamp'] = {
+                "gte": greaterThan,
+                "lte": lessThan
+            }
 
+        } else{
+            //Current request does not support load More:
+            notSupported = true;
+        }
         let loadMoreObservable = Observable.create((observer) => {
-            if (!(oldRequestGreaterThan === greaterThan)) {
+            if (!(oldRequestGreaterThan === greaterThan) && !notSupported) {     //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
                 let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
                 observableAux.subscribe(logs => {
                     observer.next(logs);
-                });
-                if(isSearch){
-                    observer.complete();
-                }
+                }, (err)=>console.log(err), ()=>{observer.complete()});
             } else {
-                console.log("No more results to fetch");
+                //If last log's time (greaterThan) is the same as the last request, it means there were no more results to fetch
+                console.log("No more results to fetch or request not supported.");
                 observer.complete()
             }
         });
@@ -268,7 +271,8 @@ export class ElasticService {
         return result;
     }
 
-    elasticLogProcessing(logEntry: any) {let type = logEntry._type;
+    elasticLogProcessing(logEntry: any) {
+        let type = logEntry._type;
         let time = logEntry._source['@timestamp'];
         let message = logEntry._source.message;
         let level = logEntry._source.level || logEntry._source.loglevel;
