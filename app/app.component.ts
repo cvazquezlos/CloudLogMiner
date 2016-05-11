@@ -28,10 +28,7 @@ export class AppComponent {
 
     constructor(private _elasticService:ElasticService) {
         // we pass an empty gridOptions in, so we can grab the api out
-        this.gridOptions = <GridOptions>{
-            //enableServerSideSorting: true
-        };
-        //this.rowData=[];
+        this.gridOptions = <GridOptions>{};
         this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
@@ -70,23 +67,31 @@ export class AppComponent {
 
     public mark(input: string) {
         let i=0;
-        for(let row of this.rowData) {
-            if(!row.marked) {
-                for (let field in row) {
-                    if (row.hasOwnProperty(field) && field != "marked") {        //Check that property doesn't belong to prototype & boolean cannot be searched
-                        if (row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
-                            this.rowData[i].marked = true;
-                            break;
-                        } else {
-                            this.rowData[i].marked = false;
+        if(input) {
+            for(let row of this.rowData) {
+                if (!row.marked) {
+                    for (let field in row) {
+                        if (row.hasOwnProperty(field) && field != "marked") {        //Check that property doesn't belong to prototype & boolean cannot be searched
+                            if (row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
+                                this.rowData[i].marked = true;
+                                break;
+                            } else {
+                                this.rowData[i].marked = false;
+                            }
                         }
                     }
                 }
+                i++
             }
-            i++;
+        } else {
+            for (let row of this.rowData) {
+                this.rowData[i].marked = false;
+                i++
+            }
         }
         this.currentFilter = input;
-        this.gridOptions.api.softRefreshView();
+        this.createColumnDefs();
+        //this.gridOptions.api.softRefreshView();  It was not enough when unmarking
     }
 
     public loadByDate(to: Date, from:Date){
@@ -100,6 +105,9 @@ export class AppComponent {
             (complete)=>{
                 console.log("Done");
                 this.showLoadMore = true;
+                if(this.currentFilter) {
+                    this.mark(this.currentFilter);
+                }
             });
     }
 
