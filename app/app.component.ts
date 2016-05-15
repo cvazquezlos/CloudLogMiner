@@ -8,14 +8,13 @@ import {ElasticService} from "./shared/elastic.service";
     selector: 'my-app',
     templateUrl: './app/appcomponent.html',
     directives: [AgGridNg2],
-    //providers: HTTP_PROVIDERS,
     styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
 })
 export class AppComponent {
 
-    private gridOptions: GridOptions;
+    public gridOptions: GridOptions;
     private showGrid: boolean;
-    private rowData: any[];
+    public rowData: any[];
     private columnDefs: any[];
     private rowCount: string;
     private showLoadMore: boolean;
@@ -44,7 +43,7 @@ export class AppComponent {
         this.rowData=[];
         this._elasticService.getRowsDefault()
             .subscribe((res)=>{
-                this.gridOptions.api.hideOverlay();
+                //this.gridOptions.api.hideOverlay(); TODO it breaks the test
                 this.rowData=this.rowData.concat(res);
                 this.rowData=this.rowData.slice();
             },(err)=>console.log("Error in default fetching"+err),

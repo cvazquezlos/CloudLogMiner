@@ -11,7 +11,7 @@ import 'rxjs/add/operator/map';
 import {MockBackend} from 'angular2/http/testing';
 import {fakeD} from './../fakeData';
 import {provide} from 'angular2/core';
-import {Observable} from "rxjs/Observable";
+import {Observable} from "rxjs/Rx";
 
 /*
 Please note that the function loadMore is tested along with each of the possible preceding functions. This decision was purely by convenience as its behaviour depends on the service state.

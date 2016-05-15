@@ -26,13 +26,29 @@
     // #2. Configure systemjs to use the .js extension
     //     for imports from the app folder
     System.config({
-      packages: {
-        'app': {defaultExtension: 'js'}
-      }
+        packages: {
+            'app': {
+                defaultExtension: 'js'
+            },
+            'ag-grid-ng2': {
+              defaultExtension: "js"
+            },
+            'ag-grid': {
+              defaultExtension: "js"
+            }
+        },
+        map: {
+            'ag-grid-ng2': 'node_modules/ag-grid-ng2',
+            'ag-grid': 'node_modules/ag-grid'
+        }
     });
 
     // #3. Import the spec file explicitly
-    System.import('app/shared/elastic.service.spec')
+    Promise.all([
+      System.import('app/shared/elastic.service.spec'),
+      System.import('app/app.component.spec')
+    ])
+
 
       // #4. wait for all imports to load ...
       //     then re-execute `window.onload` which
