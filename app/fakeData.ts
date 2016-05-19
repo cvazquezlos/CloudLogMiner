@@ -811,7 +811,8 @@ export let fakeD =
     }
 };
 
-export let fakeRowsProcessed = [
+export let fakeRowsProcessed =
+    [
     {
         "time": "2016-04-17T08:10:55.601Z",
         "message": "2016-04-17 08:10:55,601 INFO  [Timer-0] org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService org.kurento.kmscluster.controller.autoscaling.AWSAutoscalingService (publishMetricToAWS(284)) - Published load metric 0.0 to AWS CloudWathService",

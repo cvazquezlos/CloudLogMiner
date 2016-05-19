@@ -18,7 +18,7 @@ Please note that the function loadMore is tested along with each of the possible
 ElasticService state relies heavily in currentRequest property, as load more and date queries use it to be consistent with the previous request.
  */
 
-describe('ElasticService', () => {
+describe('-> ElasticService <-', () => {
     let elasticService;
     let fakeData = fakeD;
    beforeEachProviders(() => [

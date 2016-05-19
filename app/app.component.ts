@@ -19,13 +19,15 @@ export class AppComponent {
     private rowCount: string;
     private showLoadMore: boolean;
     private searchByRelevance: boolean;
-    private currentFilter: string;
+    public currentFilter: string;
+    public errorMessage: string;
 
     private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
     private defaultTo = new Date(new Date().valueOf() - (1 * 60 * 60 * 1000));
 
 
     constructor(private _elasticService:ElasticService) {
+        this.showLoadMore=false;
         // we pass an empty gridOptions in, so we can grab the api out
         this.gridOptions = <GridOptions>{
             //enableServerSideSorting: true
@@ -34,8 +36,8 @@ export class AppComponent {
         this.createRowData();
         this.createColumnDefs();
         this.showGrid = true;
-        this.showLoadMore=true;
-        this.searchByRelevance=false;
+        this.searchByRelevance = false;
+        this.errorMessage = "";
     }
 
     public createRowData(){
@@ -47,10 +49,7 @@ export class AppComponent {
                 this.rowData=this.rowData.concat(res);
                 this.rowData=this.rowData.slice();
             },(err)=>console.log("Error in default fetching"+err),
-            (complete)=>{
-                console.log("Done");
-                this.showLoadMore=true;
-            });
+            (complete) => this.subscribeComplete());
     }
 
     public search(input: string) {
@@ -61,10 +60,7 @@ export class AppComponent {
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
         }, (err)=>console.log("Error in search"+err),
-            (complete)=>{
-                console.log("Done");
-                this.showLoadMore = true;
-            });
+            (complete) => this.subscribeComplete());
     }
 
     public mark(input: string) {
@@ -89,17 +85,18 @@ export class AppComponent {
     }
 
     public loadByDate(to: Date, from:Date){
-        this.gridOptions.api.showLoadingOverlay();
-        this.rowData=[];
-        this._elasticService.loadByDate(to,from).subscribe((res) => {
-            this.gridOptions.api.hideOverlay();
-            this.rowData=this.rowData.concat(res);
-            this.rowData=this.rowData.slice();
-        }, (err)=>console.log("Error in loading by date"+err),
-            (complete)=>{
-                console.log("Done");
-                this.showLoadMore = true;
-            });
+        if(from<to) {
+            this.gridOptions.api.showLoadingOverlay();
+            this.rowData = [];
+            this._elasticService.loadByDate(to, from).subscribe((res) => {
+                    this.gridOptions.api.hideOverlay();
+                    this.rowData = this.rowData.concat(res);
+                    this.rowData = this.rowData.slice();
+                }, (err)=>console.log("Error in loading by date" + err),
+                (complete) => this.subscribeComplete());
+        }else{
+            this.errorMessage = "Please be sure that the 'to' field is not earlier than 'from' field";
+        }
     }
 
     public loadMore() {
@@ -112,14 +109,19 @@ export class AppComponent {
             this.rowData=this.rowData.concat(res);
             this.rowData=this.rowData.slice();
         }, (err)=>console.log("Error in further fetching"+ err),
-            (complete)=>{
-                console.log("Done");
-                this.showLoadMore = false;
-                //Need to apply the marker
-                if(this.currentFilter) {
-                    this.mark(this.currentFilter);
-                }
-            });
+            (complete) => this.subscribeComplete());
+    }
+
+    private subscribeComplete(){
+        console.log("Done");
+        //Need to apply the marker
+        if(this.currentFilter) {
+            this.mark(this.currentFilter);
+        }
+        if(this.rowData.length>49) {
+            this.showLoadMore = true;
+        }
+        this.errorMessage = "";
     }
 
     public createColumnDefs() {
