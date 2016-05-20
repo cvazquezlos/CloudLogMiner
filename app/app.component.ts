@@ -101,7 +101,7 @@ export class AppComponent {
 
     public loadMore() {
         this.gridOptions.api.showLoadingOverlay();
-        let r = this.rowCount.split("/");
+        let r = this.rowCount.split("/");           //Number of displayed logs comes from the grid
         let lastLog = this.rowData[parseInt(r[0])-1];
 
         this._elasticService.loadMore(lastLog).subscribe((res) => {
