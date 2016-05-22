@@ -32,16 +32,19 @@ export class AppComponent {
         this.gridOptions = <GridOptions>{
             //enableServerSideSorting: true
         };
-        //this.rowData=[];
-        this.createRowData();
+        this.rowData=[];
         this.createColumnDefs();
         this.showGrid = true;
         this.searchByRelevance = false;
         this.errorMessage = "";
     }
 
+    ngAfterContentInit() {         //It needs to be done after the grid api has been set, to be able to use its methods
+        this.createRowData();
+    }
+
     public createRowData(){
-        //this.gridOptions.api.showLoadingOverlay();
+        this.gridOptions.api.showLoadingOverlay();
         this.rowData=[];
         this._elasticService.getRowsDefault()
             .subscribe((res)=>{

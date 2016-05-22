@@ -138,7 +138,6 @@ describe('-> AppComponent <-', () => {
     it('should mark rows matching a string', () => {
         //Logs displayed are the initial ones
         myComponent.mark("PingWatchdogSession");
-        console.log(myComponent.rowData);
         expect(myComponent.rowData[1].marked).toBe(true);
         expect(myComponent.rowData[37].marked).toBe(true);
     });
