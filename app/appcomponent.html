@@ -15,7 +15,7 @@
         </div>
         <div>
             <b>Row count</b>
-            <p id="rowCount" [textContent]="rowCount"></p>
+            <p id="rowCount" [innerText]="rowCount"></p><!-- should be textContent-->
         </div>
     </div>
     <div style="clear: both;"></div>
@@ -26,13 +26,13 @@
             <input #from type="datetime-local" class="form-control" id="from" placeholder="From" [value]="getDefaultFromValue()" novalidate="true" step=1>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-left:1em">
             <label for="to">To</label>
             <input #to type="datetime-local" class="form-control" id="to" placeholder="To" [value]="getDefaultToValue()" novalidate="true" step=1>
         </div>
-        <button (click)="loadByDate(to.value, from.value)" class="btn btn-default searchByDate">Search</button>
+        <button (click)="loadByDate(to.value, from.value)" class="btn btn-default searchByDate" style="margin-left:1em">Search</button>
     </form>
-    <p id="errorMessage" style="color:red" [textContent]="errorMessage"></p>
+    <p id="errorMessage" style="color:red" [innerText]="errorMessage"></p>
 
     <div [hidden]="!showGrid">
 

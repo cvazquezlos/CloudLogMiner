@@ -1,16 +1,16 @@
 /**
  * Created by Silvia on 16/04/2016.
  */
-import {describe, it, expect, inject, beforeEach, beforeEachProviders} from 'angular2/testing'; //Very important to import angular2 specific ones
+import {describe, it, expect, inject, beforeEach, beforeEachProviders} from '@angular/core/testing'; //Very important to import angular2 specific ones
 import {ElasticService} from "./elastic.service";
 import {
     HTTP_PROVIDERS, ResponseOptions, Response, BaseRequestOptions, XHRBackend,
     RequestOptions, RequestMethod
-} from 'angular2/http';
+} from '@angular/http';
 import 'rxjs/add/operator/map';
-import {MockBackend} from 'angular2/http/testing';
+import {MockBackend} from '@angular/http/testing';
 import {fakeD} from './../fakeData';
-import {provide} from 'angular2/core';
+import {provide} from '@angular/core';
 import {Observable} from "rxjs/Rx";
 
 /*

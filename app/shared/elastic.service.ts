@@ -3,8 +3,8 @@
  */
 
 //Removed map.d import as no necessary
-import {Injectable,EventEmitter} from "angular2/core";
-import {Http, RequestOptions, RequestMethod, Request} from 'angular2/http';
+import {Injectable,EventEmitter} from "@angular/core";
+import {Http, RequestOptions, RequestMethod, Request} from '@angular/http';
 import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Observable";
 

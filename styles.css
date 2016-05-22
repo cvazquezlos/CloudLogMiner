@@ -1,31 +1,24 @@
+.form-group {
+  float: left;
+}
+
 /* Master Styles */
-.log-level-error {
-  color: #FF0000;
-}
-
-.log-level-warn {
-  color: #F0AD4E;
-}
-
-.markedInFilter {
-    background-color: lightgoldenrodyellow;
-}
-
 h1 {
-  color: #369; 
-  font-family: Arial, Helvetica, sans-serif;   
+  color: #369;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 250%;
 }
-h2, h3 { 
+h2, h3 {
   color: #444;
-  font-family: Arial, Helvetica, sans-serif;   
+  font-family: Arial, Helvetica, sans-serif;
   font-weight: lighter;
 }
-body { 
-  margin: 2em; 
+body {
+  margin: 2em;
 }
 body, input[text], button {
-  font-family: Cambria, Georgia; 
+  //color: #888;
+  font-family: Cambria, Georgia;
 }
 a {
   cursor: pointer;
@@ -45,7 +38,7 @@ button:hover {
 }
 button:disabled {
   background-color: #eee;
-  color: #aaa; 
+  color: #aaa;
   cursor: auto;
 }
 
@@ -148,6 +141,6 @@ nav a.router-link-active {
 }
 
 /* everywhere else */
-* { 
-  font-family: Arial, Helvetica, sans-serif; 
+* {
+  font-family: Arial, Helvetica, sans-serif;
 }
