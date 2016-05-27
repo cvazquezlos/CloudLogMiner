@@ -123,13 +123,6 @@ export class AppComponent {
 
     public getDirectories() {
         let data = [];
-        for (let i = 0; i < 20; i++) {
-            this.rowData[i].path = "/app/pony/chuh.js"
-        }
-        this.rowData[19].path = "/app/pony/jajap.js";
-        for (let i = 20; i < 50; i++) {
-            this.rowData[i].path = "app/jaja/pe.js"
-        }
         for (let row of this.rowData) {
             this.buildTree(row.path.split('/'), data);
         }
@@ -166,6 +159,7 @@ export class AppComponent {
         let i = 0;
         for(let c of d.children) {  //children were objects, now they are strings
             d.children[i] = c.text;
+            i++;
         }
         return new Directory(d.text, [], d.children);
     }
@@ -177,6 +171,10 @@ export class AppComponent {
             directories.push(this.recursiveFormat(d));
         }
         return directories;
+    }
+
+    private dirSelected(dir: string) {
+        console.log(dir);
     }
 
 

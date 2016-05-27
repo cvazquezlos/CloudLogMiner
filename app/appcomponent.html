@@ -99,7 +99,10 @@
                      (columnResized)="onColumnEvent($event)"
                      (columnPinnedCountChanged)="onColumnEvent($event)">
         </ag-grid-ng2>
-        <files-tree [directories] = "directories" style="float:right"></files-tree>
+        <div id="tree" style="float:right;overflow:scroll; height:15em; width:16%">
+            <h3>Source Files</h3>
+            <files-tree [directories] = "directories" (checked)="dirSelected($event)"></files-tree>
+        </div>
         <div><button *ngIf="showLoadMore" (click)="loadMore()" class="btn btn-default" style="margin-left:40%">Load more</button></div>
     </div>
 
