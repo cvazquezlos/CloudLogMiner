@@ -295,7 +295,9 @@ export class ElasticService {
         }
         let host = logEntry._source.host;
 
-        let logValue = {type, time, message, level, thread, logger, host};
+        let path = logEntry._source.path;
+
+        let logValue = {type, time, message, level, thread, logger, host, path};
 
         return logValue;
     }
