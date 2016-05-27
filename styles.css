@@ -10,6 +10,11 @@
   color: #F0AD4E;
 }
 
+
+.markedInFilter {
+  background-color: lightgoldenrodyellow;
+}
+
 /* Master Styles */
 h1 {
   color: #369;

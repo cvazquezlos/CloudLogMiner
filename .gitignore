@@ -10,3 +10,4 @@ app/**/*.*.js
 app/**/*.*.js.map
 app/**/*.js.map
 typings
+_test-output/

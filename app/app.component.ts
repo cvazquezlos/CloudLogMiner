@@ -104,7 +104,7 @@ export class AppComponent {
                 }, (err)=>console.log("Error in loading by date" + err),
                 (complete) => this.subscribeComplete());
         } else {
-            this.errorMessage = "Please be sure that the 'to' field is not earlier than 'from' field";
+            this.errorMessage = "Please enter a valid date";
         }
     }
 

@@ -219,6 +219,7 @@ describe('-> ElasticService <-', () => {
             'type',
             'time',
             'message',
+            'path',
             'level',
             'thread',
             'logger',
