@@ -53,11 +53,13 @@ export class AppComponent {
         //this.gridOptions.api.showLoadingOverlay();
         this.rowData = [];
         this._elasticService.getRowsDefault()
-            .subscribe((res)=> {
+            .subscribe(
+                (res)=> {
                     //this.gridOptions.api.hideOverlay(); TODO it breaks the test
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
-                }, (err)=>console.log("Error in default fetching" + err),
+                },
+                (err)=> { this.errorMessage="Error in default fetching" + err},
                 (complete) => this.subscribeComplete());
     }
 
@@ -68,7 +70,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=>console.log("Error in search" + err),
+            }, (err)=> this.errorMessage = "Error in search" + err,
             (complete) => this.subscribeComplete());
     }
 
@@ -101,7 +103,7 @@ export class AppComponent {
                     this.gridOptions.api.hideOverlay();
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
-                }, (err)=>console.log("Error in loading by date" + err),
+                }, (err)=> this.errorMessage = "Error in loading by date" + err,
                 (complete) => this.subscribeComplete());
         } else {
             this.errorMessage = "Please enter a valid date";
@@ -117,7 +119,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=>console.log("Error in further fetching" + err),
+            }, (err)=> this.errorMessage = "Error in further fetching" + err,
             (complete) => this.subscribeComplete());
     }
 

@@ -83,7 +83,8 @@ export class ElasticService {
                     emitter.complete();
                 }
 
-            });
+            }, err => { emitter.error(new Error("No se puede acceder a la instancia de ElasticSearch (ERR_CONNECTION_REFUSED)")) }
+            );
 
         return;
     }
