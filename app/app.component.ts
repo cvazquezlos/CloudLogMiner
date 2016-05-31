@@ -8,6 +8,7 @@ import {toInputLiteral} from './shared/DateUtils';
 import {ElasticService} from "./shared/elastic.service";
 import {FilesTree} from "./shared/filesTree/filesTree.component";
 import {Directory} from "./shared/filesTree/directory";
+import {getDirectories} from './shared/formatter';
 
 @Component({
     selector: 'my-app',
@@ -124,61 +125,12 @@ export class AppComponent {
     }
 
     public getDirectories() {
-        let data = [];
-        for (let row of this.rowData) {
-            this.buildTree(row.path.split('/'), data);
-        }
-        return this.directoryFormat(data);
+        return getDirectories(this.rowData);
     }
 
-    private buildTree(parts, treeNode) {
-        if (parts.length === 0) {
-            return;
-        }
-        if (parts[0] != "") {
-            for (var i = 0; i < treeNode.length; i++) {
-                if (parts[0] == treeNode[i].text) {
-                    this.buildTree(parts.splice(1, parts.length), treeNode[i].children);
-                    return;
-                }
-            }
-            var newNode = {'text': parts[0], 'children': []};
-            treeNode.push(newNode);
-            this.buildTree(parts.splice(1, parts.length), newNode.children);
-        }
-        else {
-            parts.splice(0, 1);
-            this.buildTree(parts, treeNode);
-        }
-    }
-
-    private recursiveFormat(d) {
-        let subDirectories, files = [];
-        while (d.children[0].children && d.children[0].children.length>0) {
-            subDirectories = this.directoryFormat(d.children);
-            return new Directory(d.text, subDirectories, [])
-        }
-        let i = 0;
-        for(let c of d.children) {  //children were objects, now they are strings
-            d.children[i] = c.text;
-            i++;
-        }
-        return new Directory(d.text, [], d.children);
-    }
-
-    private directoryFormat(data) {
-        let directories = [];
-
-        for (let d of data) {
-            directories.push(this.recursiveFormat(d));
-        }
-        return directories;
-    }
-
-    private dirSelected(dir: string) {
+    private dirChecked(dir: string) {
         console.log(dir);
     }
-
 
     private subscribeComplete() {
         console.log("Done");
