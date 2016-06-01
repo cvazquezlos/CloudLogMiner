@@ -83,7 +83,9 @@ export class ElasticService {
                     emitter.complete();
                 }
 
-            }, err => { emitter.error(new Error("No se puede acceder a la instancia de ElasticSearch (ERR_CONNECTION_REFUSED)")) }
+            }, err => { if(err.status===200){
+                    emitter.error(new Error("Can't access elasticSearch instance (ERR_CONNECTION_REFUSED)"))
+                } }
             );
 
         return;
@@ -254,8 +256,7 @@ export class ElasticService {
                 }, (err)=>console.log(err), ()=>{observer.complete()});
             } else {
                 //If last log's time (greaterThan) is the same as the last request, it means there were no more results to fetch
-                console.log("No more results to fetch or request not supported.");
-                observer.complete()
+                observer.error(new Error("Request not supported"));
             }
         });
         return loadMoreObservable;

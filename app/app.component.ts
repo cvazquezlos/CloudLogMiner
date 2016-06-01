@@ -60,7 +60,7 @@ export class AppComponent {
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
                 },
-                (err)=> { this.errorMessage="Error in default fetching" + err},
+                (err)=> { this.errorMessage="Error when default fetching. " + err},
                 (complete) => this.subscribeComplete());
     }
 
@@ -71,7 +71,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=> this.errorMessage = "Error in search" + err,
+            }, (err)=> this.errorMessage = "Error when searching. " + err,
             (complete) => this.subscribeComplete());
     }
 
@@ -104,7 +104,7 @@ export class AppComponent {
                     this.gridOptions.api.hideOverlay();
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
-                }, (err)=> this.errorMessage = "Error in loading by date" + err,
+                }, (err)=> this.errorMessage = "Error when loading by date. " + err,
                 (complete) => this.subscribeComplete());
         } else {
             this.errorMessage = "Please enter a valid date";
@@ -120,7 +120,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=> this.errorMessage = "Error in further fetching" + err,
+            }, (err)=> this.errorMessage = "Error when further fetching" + err,
             (complete) => this.subscribeComplete());
     }
 
