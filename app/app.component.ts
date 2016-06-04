@@ -128,7 +128,16 @@ export class AppComponent {
         return getDirectories(this.rowData);
     }
 
-    private dirChecked(dir: string) {
+    private dirChecked(dir) {
+        this.rowData = [];
+        this._elasticService.loadByFile(dir).subscribe((res) => {
+            this.gridOptions.api.hideOverlay();
+            this.rowData = this.rowData.concat(res);
+            this.rowData = this.rowData.slice();
+        });
+    }
+
+    private dirUnchecked(dir) {
         console.log(dir);
     }
 

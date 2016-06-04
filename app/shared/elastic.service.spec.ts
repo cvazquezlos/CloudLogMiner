@@ -60,7 +60,7 @@ describe('-> ElasticService <-', () => {
             let gt = "2016-04-17T08:06:55.601Z";
             let fakeBody = JSON.parse(elasticService.currentRequest.body);
             //listAllLogs gives away a "now" parameter to be interpreted by elasticSearch. We would rather fake it
-            fakeBody["query"].filtered.filter.bool.must[0].range['@timestamp']={
+            fakeBody["query"].bool.must[0].range['@timestamp']={
                 "gte": gt,
                 "lte": lt
             };
@@ -144,7 +144,7 @@ describe('-> ElasticService <-', () => {
                     "multi_match": {
                         "query":"test",
                         "type":"best_fields",
-                        "fields": ["type", "host", "message", elasticService.fields.level, elasticService.fields.logger, elasticService.fields.thread],         //Not filter by time: parsing user input would be required
+                        "fields": ["type", "host", "message", elasticService.fields.level, elasticService.fields.logger, elasticService.fields.thread, "path"],         //Not filter by time: parsing user input would be required
                         "tie_breaker":0.3,
                         "minimum_should_match":"30%"
                     }
@@ -184,24 +184,25 @@ describe('-> ElasticService <-', () => {
                 let lt = "2016-04-17T08:10:55.601Z";    //static fake data, consistent with lastLog
                 let gt = "2016-04-17T08:10:55.601Z||-200d";
                 let expectedBody = {
-                    "query" :{
-                    "filtered" : {
-                        "query" : {
-                            "multi_match" : "test"
-                        },
-                        "filter" : {
-                            "range": {
-                                '@timestamp': {
-                                    "gte": gt,
-                                    "lte": lt
-                                }
-                            }
+                    "query":{
+                        "bool": {
+                            "must": [
+                                {"range": {
+                                    "@timestamp": {
+                                        "lte": lt,
+                                        "gte": gt
+                                    }
+                                }},
+                                {"multi_match": {
+                                    "query":"test",
+                                    "type":"best_fields",
+                                    "fields": ["_index"],
+                                    "tie_breaker":0.3,
+                                    "minimum_should_match":"30%"
+                                }}
+                            ]
                         }
                     }
-                },
-                    sort: [
-                        { "@timestamp": "desc" }
-                    ]
                 };
                 let expectedRequest = elasticService.currentRequest;
                 expectedRequest.body = expectedBody;

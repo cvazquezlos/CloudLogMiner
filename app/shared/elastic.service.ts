@@ -38,7 +38,9 @@ export class ElasticService {
 
     private maxResults:number = 50;
 
-    private currentRequest:RequestOptions = new RequestOptions();
+    private currentRequest:RequestOptions;
+
+    private filesFilter: string;//Array<any> = [];
 
     constructor(private _http: Http) {
 
@@ -71,11 +73,7 @@ export class ElasticService {
                         "scroll_id" : this.scroll
                     };
                     let url2 = ES_URL + '_search/scroll';
-                    let requestOptions2 = new RequestOptions({
-                        method: RequestMethod.Post,
-                        url: url2,
-                        body: JSON.stringify(body2)
-                    });
+                    let requestOptions2 = this.wrapRequestOptions(url2, body2);
                     this.listAllLogs(requestOptions2, emitter);
                     return;
                 }else {
@@ -98,48 +96,56 @@ export class ElasticService {
                 { "@timestamp": "desc" }
             ],
             query: {
-                filtered: {
-                    filter: {
-                        bool: {
-                            must: [
-                                {range: {
-                                    '@timestamp': {
-                                        gte: "now-200d",
-                                        lte: "now" }
-                                    }
-                                },
-                                { "bool":{"should": [
-                                    { "exists" : { "field" : "thread_name" } },
-                                    { "exists" : { "field" : "threadid" } }
-                                ]
-                                }
-                                },
-                                { "bool": { "should": [
-                                    { "exists" : { "field" : "logger_name" } },
-                                    { "exists" : { "field" : "loggername" } }
-                                ]
-                                }
-                                },
-                                {   "bool": { "should": [
-                                    { "exists" : { "field" : "loglevel" } },
-                                    { "exists" : { "field" : "level" } }
-                                ]
-                                }
-                                }
-                            ]
+                bool: {
+                    must: [
+                        {range: {
+                            '@timestamp': {
+                                gte: "now-200d",
+                                lte: "now" }
                         }
-                    }
+                        },
+                        {
+                            filtered: {
+                                filter: {
+                                    bool: {
+                                        must: [
+                                            {
+                                                "bool": {
+                                                    "should": [
+                                                        {"exists": {"field": "thread_name"}},
+                                                        {"exists": {"field": "threadid"}}
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "bool": {
+                                                    "should": [
+                                                        {"exists": {"field": "logger_name"}},
+                                                        {"exists": {"field": "loggername"}}
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "bool": {
+                                                    "should": [
+                                                        {"exists": {"field": "loglevel"}},
+                                                        {"exists": {"field": "level"}}
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
                 }
             },
             size: this.sizeOfPage
             //The following are the fields that are requested from each log. They should be consistent with the definition of logValue
             //_source: ["host", "thread_name", "logger_name", "message", "level", "@timestamp"] 
         };
-        let requestOptions = new RequestOptions({
-            method: RequestMethod.Post,
-            url,
-            body: JSON.stringify(body)
-        });
+        let requestOptions = this.wrapRequestOptions(url,body);
         this.currentRequest = requestOptions;
 
         let observable = Observable.create((observer) => this.listAllLogs(requestOptions, observer));
@@ -162,7 +168,7 @@ export class ElasticService {
                 "multi_match": {
                     "query":value,
                     "type":"best_fields",
-                    "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread],         //Not filter by time: parsing user input would be required
+                    "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread, "path"],         //Not filter by time: parsing user input would be required
                     "tie_breaker":0.3,
                     "minimum_should_match":"30%"
                 }
@@ -174,11 +180,7 @@ export class ElasticService {
         };
         let url = ES_URL + INDEX + '/_search?scroll=1m';
 
-        let requestOptions2 = new RequestOptions({
-            method: RequestMethod.Post,
-            url,
-            body: JSON.stringify(body)
-        });
+        let requestOptions2 = this.wrapRequestOptions(url,body);
         if (!orderByRelevance) {            //Fetching more as it is implemented now uses timestamp of the older log
             this.currentRequest = requestOptions2;
         } else {
@@ -203,7 +205,7 @@ export class ElasticService {
     }
 
     loadByDate(lessThan, greaterThan) {
-        let newBody = JSON.parse(this.currentRequest.body);
+        /*let newBody = JSON.parse(this.currentRequest.body);
         let oldRequestGreaterThan;
         let isSearch, notSupported;
         if (newBody.query.hasOwnProperty("multi_match")) {
@@ -246,9 +248,49 @@ export class ElasticService {
         } else{
             //Current request does not support load More:
             notSupported = true;
+        }*/
+        let oldRequestGreaterThan;
+        let notSupported = false;
+        let newBody;
+        if(this.currentRequest) {
+            newBody = JSON.parse(this.currentRequest.body);
+            let i=0;
+            let addition = {
+                range: {
+                    "@timestamp": {
+                        "gte": greaterThan,
+                        "lte": lessThan
+                    }
+                }
+            };
+            let itHappenedBefore = false;
+            if(newBody.query.bool) {
+                for(let musts of newBody.query.bool.must) {
+                    let i = 0;
+                    if(musts.range) {             //check if loadByDate has already happened in current request
+                        newBody.query.bool.must[i].range = addition.range;
+                        itHappenedBefore = true;
+                        break;
+                    }
+                    i++;
+                }
+            }
+            if(!itHappenedBefore) {
+                newBody.query = {
+                    bool: {
+                        must: [
+                            addition,
+                            newBody.query
+                        ]
+                    }
+                };
+            }
+        } else {    //It is ordered by relevance
+            notSupported = true;
         }
+
         let loadMoreObservable = Observable.create((observer) => {
-            if (!(oldRequestGreaterThan === greaterThan) && !notSupported) {     //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
+            if (/*!(oldRequestGreaterThan === greaterThan) && */!notSupported) {     //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
                 let observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
                 observableAux.subscribe(logs => {
@@ -256,10 +298,51 @@ export class ElasticService {
                 }, (err)=>console.log(err), ()=>{observer.complete()});
             } else {
                 //If last log's time (greaterThan) is the same as the last request, it means there were no more results to fetch
-                observer.error(new Error("Request not supported"));
+                observer.error(new Error("Request not supported. Reason: request to be ordered by relevance"));
             }
         });
         return loadMoreObservable;
+    }
+
+    loadByFile(file:string) {
+        let newBody = JSON.parse(this.currentRequest.body);
+        let addition = {
+            "query_string" : {
+                "default_field": "path",
+                "query": "*" + file + "*"
+            }
+        };
+        if(newBody.query.bool && newBody.bool.must.query_string) {      //Check if loadByFile has already happened in current request. No need to check if loadByDate happened as directories are loaded from scratch after every request
+            newBody.query.bool.must.query_string = addition.query_string;
+        } else {
+            newBody.query = {
+                bool: {
+                    must: [
+                        addition,
+                        newBody.query
+                    ]
+                }
+            };
+        }
+
+        this.filesFilter = file;
+
+        let url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
+
+        let requestOptions = this.wrapRequestOptions(url, newBody);
+
+        let observable = Observable.create((observer) =>
+            this.listAllLogs(requestOptions, observer));
+
+        return observable;
+    }
+
+    wrapRequestOptions(url:string, body:any) {
+        return new RequestOptions({
+            method: RequestMethod.Post,
+            url,
+            body: JSON.stringify(body)
+        });
     }
 
     mapLogs(answer): any[] {
