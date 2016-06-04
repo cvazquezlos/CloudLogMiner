@@ -12,6 +12,7 @@ import {Directory} from './directory';
 export class FilesTree {
     @Input() directories: Array<Directory>;
     @Output() checked = new EventEmitter<string>();
+    @Output() unchecked = new EventEmitter<string>();
 
     ngOnChanges() {         //Intercept input property changes
         if(this.directories) {
@@ -19,7 +20,18 @@ export class FilesTree {
                 dir.dirChecked.subscribe((checkboxed)=> {
                     this.checked.emit(checkboxed);
                 });
+                dir.dirUnchecked.subscribe((unchecked)=> {
+                    this.unchecked.emit(unchecked);
+                });
             }
         }
+    }
+
+    bubble(event) {
+        this.directories[0].dirChecked.emit(event);
+    }
+
+    bubbleUnchecked(event) {
+        this.directories[0].dirUnchecked.emit(event);
     }
 }

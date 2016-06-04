@@ -5,12 +5,13 @@ import {Output, EventEmitter} from "@angular/core";
 
 export class Directory{
     @Output() dirChecked = new EventEmitter();
+    @Output() dirUnchecked = new EventEmitter();
     
     name: string;
     directories: Array<Directory>;
     files: Array<String>;
-    expanded:boolean;
-    checked:boolean;
+    expanded: boolean;
+    checked: boolean;
     constructor(name,directories,files) {
         this.name = name;
         this.files = files;
@@ -23,11 +24,15 @@ export class Directory{
         this.expanded = !this.expanded;
     }
 
-    check(){
+    check(event){
         let newState = !this.checked;
         this.checked = newState;
         this.checkRecursive(newState);
-        this.dirChecked.emit(this.name);        //quizá this checked ya que se llama también cuando descheckeas.
+        if(this.checked) {
+            this.dirChecked.emit(event);
+        } else {
+            this.dirUnchecked.emit(event);
+        }
     }
 
     checkRecursive(state){

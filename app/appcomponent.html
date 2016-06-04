@@ -117,7 +117,7 @@
             </ag-grid-ng2>
             <div id="tree" style="float:right;overflow:scroll; height:15em; width:16%">
                 <h4>Source Files</h4>
-                <files-tree [directories] = "directories" (checked)="dirSelected($event)"></files-tree>
+                <files-tree [directories] = "directories" (checked)="dirChecked($event)" (unchecked)="dirUnchecked($event)"></files-tree>
             </div>
         </div>
         <div class="row"><button *ngIf="showLoadMore" (click)="loadMore()" class="btn btn-default" style="margin-left:40%">Load more</button></div>
