@@ -26,7 +26,7 @@ export class AppComponent {
     private showLoadMore:boolean;
     private searchByRelevance:boolean;
     public currentFilter:string;
-    public errorMessage:string;
+    public errorMessage: {text:string, type:string} = {text:"", type:""};
     public directories:Array<Directory>;
 
     private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
@@ -43,7 +43,7 @@ export class AppComponent {
         this.createColumnDefs();
         this.showGrid = true;
         this.searchByRelevance = false;
-        this.errorMessage = "";
+        this.errorMessage.text = "";
     }
 
     ngAfterContentInit() {         //It needs to be done after the grid api has been set, to be able to use its methods
@@ -60,7 +60,7 @@ export class AppComponent {
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
                 },
-                (err)=> { this.errorMessage="Error when default fetching. " + err},
+                (err)=> { this.subscribeError("Error when default fetching. " + err)},
                 (complete) => this.subscribeComplete());
     }
 
@@ -71,7 +71,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=> this.errorMessage = "Error when searching. " + err,
+            }, (err)=> this.subscribeError("Error when searching. " + err),
             (complete) => this.subscribeComplete());
     }
 
@@ -104,10 +104,10 @@ export class AppComponent {
                     this.gridOptions.api.hideOverlay();
                     this.rowData = this.rowData.concat(res);
                     this.rowData = this.rowData.slice();
-                }, (err)=> this.errorMessage = "Error when loading by date. " + err,
+                }, (err)=> this.subscribeError("Error when loading by date. " + err),
                 (complete) => this.subscribeComplete());
         } else {
-            this.errorMessage = "Please enter a valid date";
+            this.setErrorAlert("Please enter a valid date", "error");
         }
     }
 
@@ -120,7 +120,7 @@ export class AppComponent {
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
-            }, (err)=> this.errorMessage = "Error when further fetching" + err,
+            }, (err)=> this.subscribeError("Error when further fetching"),
             (complete) => this.subscribeComplete());
     }
 
@@ -150,8 +150,12 @@ export class AppComponent {
         if (this.rowData.length > 49) {
             this.showLoadMore = true;
         }
-        this.errorMessage = "";
+        this.errorMessage.text = "";
         this.directories = this.getDirectories();
+    }
+
+    private subscribeError(err: string) {
+        this.setErrorAlert(err, "error");
     }
 
 
@@ -343,4 +347,13 @@ export class AppComponent {
         return toInputLiteral(this.defaultTo);
     }
 
+    private setErrorAlert(message:string, type:string) {
+        if(type==="error"){
+            type = "danger";
+        }
+        this.errorMessage = {
+            text: message,
+            type: "alert-"+type+" alert fade in alert-dismissible"
+        }
+    }
 }

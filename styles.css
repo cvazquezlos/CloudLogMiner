@@ -10,9 +10,12 @@
   color: #F0AD4E;
 }
 
-
 .markedInFilter {
   background-color: lightgoldenrodyellow;
+}
+
+.nopadding{
+  padding-left: 0px;
 }
 
 ._nghost-xli-*{ display: block; } /*Para poder usar bootstrap*/

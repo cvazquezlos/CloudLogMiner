@@ -1,13 +1,24 @@
-<div style="width: 100%;" class = "row">
+<div [hidden]="!errorMessage.text" class="alert fade in" [class]="errorMessage.type">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <span id="errorMessage" [innerText]="errorMessage.text"></span>
+</div>
 
+
+<div class = "row">
+<div class="col-md-12 nopadding">
+    <div class="row"><h1>Cloud Log Miner</h1></div>
     <div style="padding: 4px;" class="row">
-        <div class="col-md-2 ">
+        <div class="col-md-2 nopadding">
             <h4>Row count</h4>
             <p id="rowCount" [innerText]="rowCount"></p><!-- should be textContent-->
         </div>
-        <div class="col-md-5 col-md-offset-5 row">
+        <div class="col-md-5 col-md-offset-5 row nopadding">
             <form class="form-inline">
-                <div class="col-md-7">
+                <div class="col-md-7 nopadding">
                     <div class="row">
                         <div class="input-group" style="width:100%">
                             <span class="glyphicon glyphicon-search input-group-addon" aria-hidden="true"></span>
@@ -15,7 +26,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="checkbox col-md-offset-2 col-md-11">
+                        <div class="checkbox col-md-offset-2 col-md-11 nopadding">
                             <label>
                                 <input type="checkbox" (change)="searchByRelevance=$event.target.checked"/> Order by relevance
                             </label>
@@ -32,7 +43,7 @@
     <div style="clear: both;" class="row"></div>
 
     <div class="row">
-        <form class="form-inline" style="float:left">
+        <form class="form-inline">
             <div class="form-group">
                 <label for="from">From</label>
                 <input #from type="datetime-local" class="form-control" id="from" placeholder="From" [value]="getDefaultFromValue()" novalidate="true" step=1>
@@ -47,7 +58,7 @@
     </div>
 
     <div class="row" [hidden]="!errorMessage">
-        <p id="errorMessage" style="color:red" [innerText]="errorMessage"></p>
+        <!--<p id="errorMessage" style="color:red" [innerText]="errorMessage"></p>-->
     </div>
 
     <div style="padding: 4px;" class="toolbar" class="row">
@@ -70,8 +81,8 @@
         </div>
         <div style="clear: both;"></div>
         <div class="row">
-
-            <ag-grid-ng2 #agGrid style="width: 80%; height: 30em; margin-left:3em" class="ag-fresh"
+            <div class="col-md-10 nopadding">
+                <ag-grid-ng2 #agGrid class="ag-fresh" style="width: 100%; height: 60%;"
 
                          [gridOptions]="gridOptions"
                          [columnDefs]="columnDefs"
@@ -114,13 +125,14 @@
                          (columnGroupOpened)="onColumnEvent($event)"
                          (columnResized)="onColumnEvent($event)"
                          (columnPinnedCountChanged)="onColumnEvent($event)">
-            </ag-grid-ng2>
-            <div id="tree" style="float:right;overflow:scroll; height:15em; width:16%">
+                </ag-grid-ng2>
+            </div>
+            <div id="tree" style="overflow:scroll" class="col-md-2 nopadding">
                 <h4>Source Files</h4>
                 <files-tree [directories] = "directories" (checked)="dirChecked($event)" (unchecked)="dirUnchecked($event)"></files-tree>
             </div>
         </div>
         <div class="row"><button *ngIf="showLoadMore" (click)="loadMore()" class="btn btn-default" style="margin-left:40%">Load more</button></div>
     </div>
-
+</div>
 </div>
