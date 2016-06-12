@@ -62,6 +62,11 @@ In short, you can save precious time in finding errors or following user stories
 
 1. Set up your ElasticSearch instance and serve it in "http://127.0.0.1:9200/". If you are using Spring Boot for a chance, you can follow any of these two guides: [1](https://blog.codecentric.de/en/2014/10/log-management-spring-boot-applications-logstash-elastichsearch-kibana/) or [2](http://knes1.github.io/blog/2015/2015-08-16-manage-spring-boot-logs-with-elasticsearch-kibana-and-logstash.html). Skip anything about Kibana, CloudLogMiner is basically substituting it.  </br>
 Soon route and index name selection will be available, but until then please note that index names are suppossed to start with "logstash". You can change that setting in shared/elastic.service.ts, second line.
+Please note than you have to allow a CORS configuration, otherwise your local copy of CloudLogMiner will not be able to access the local ElasticSearch. You can add this to elasticsearch.yml:
+```
+http.cors.enabled : true
+http.cors.allow-origin : "localhost"
+```
 
 2. Use the 'Run project' commands in a separate terminal window. Your browser will show the initialization.
 ![Alt text](https://cloud.githubusercontent.com/assets/10989693/15807945/91c93448-2b6a-11e6-9921-c0676d08c50a.png)
