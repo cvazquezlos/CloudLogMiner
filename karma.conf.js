@@ -1,34 +1,31 @@
+// Karma configuration
+// Generated on Wed Jul 15 2015 09:44:02 GMT+0200 (Romance Daylight Time)
+'use strict';
+
+var argv = require('yargs').argv;
+
 module.exports = function(config) {
-
-  var appBase   = 'app/';      // transpiled app JS files
-  var appAssets ='/base/app/'; // component assets fetched by Angular's compiler
-
   config.set({
-    basePath: '',
-    frameworks: ['jasmine'],
-    plugins: [
-      require('karma-jasmine'),
-      require('karma-chrome-launcher'),
-      require('karma-htmlfile-reporter')
-    ],
 
-    customLaunchers: {
-      // From the CLI. Not used here but interesting
-      // chrome setup for travis CI using chromium
-      Chrome_travis_ci: {
-        base: 'Chrome',
-        flags: ['--no-sandbox']
-      }
-    },
+    // base path that will be used to resolve all patterns (eg. files, exclude)
+    basePath: './',
+
+
+    // frameworks to use
+    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    frameworks: ['jasmine'],
+
+
+    // list of files / patterns to load in the browser
     files: [
+      // Polyfills.
+      'node_modules/core-js/client/shim.min.js',
+
       // System.js for module loading
+      'node_modules/systemjs/dist/system-polyfills.js',
       'node_modules/systemjs/dist/system.src.js',
 
-      // Polyfills
-      'node_modules/core-js/client/shim.js',
-
-      // Reflect and Zone.js
-      'node_modules/reflect-metadata/Reflect.js',
+      // Zone.js dependencies
       'node_modules/zone.js/dist/zone.js',
       'node_modules/zone.js/dist/jasmine-patch.js',
       'node_modules/zone.js/dist/async-test.js',
@@ -38,54 +35,104 @@ module.exports = function(config) {
       { pattern: 'node_modules/rxjs/**/*.js', included: false, watched: false },
       { pattern: 'node_modules/rxjs/**/*.js.map', included: false, watched: false },
 
-      // Angular 2 itself and the testing library
-      {pattern: 'node_modules/@angular/**/*.js', included: false, watched: false},
-      {pattern: 'node_modules/@angular/**/*.js.map', included: false, watched: false},
+      // paths loaded via module imports
+      // Angular itself
+      { pattern: 'node_modules/@angular/**/*.js', included: false, watched: true },
 
-      //ag grid
-      {pattern: 'node_modules/ag-grid/**/*.js', included: false, watched:false},
-      {pattern: 'node_modules/ag-grid-ng2/**/*.js', included: false, watched:false},
+      { pattern: 'dist/dev/**/*.js', included: false, watched: true },
+      { pattern: 'dist/dev/**/*.html', included: false, watched: true, served: true },
+      { pattern: 'dist/dev/**/*.css', included: false, watched: true, served: true },
+      { pattern: 'dist/dev/app/grid/grid.component.spec.js', included:true, watched:true},
+      { pattern: 'node_modules/systemjs/dist/system-polyfills.js', included: false, watched: false }, // PhantomJS2 (and possibly others) might require it
 
-      'karma-test-shim.js',
+      // suppress annoying 404 warnings for resources, images, etc.
+      { pattern: 'dist/dev/assets/**/*', watched: false, included: false, served: true },
 
-      // transpiled application & spec code paths loaded via module imports
-      {pattern: appBase + '**/*.js', included: false, watched: true},
-
-      // asset (HTML & CSS) paths loaded via Angular's component compiler
-      // (these paths need to be rewritten, see proxies section)
-      {pattern: appBase + '**/*.html', included: false, watched: true},
-      {pattern: appBase + '**/*.css', included: false, watched: true},
-
-      // paths for debugging with source maps in dev tools
-      {pattern: appBase + '**/*.ts', included: false, watched: false},
-      {pattern: appBase + '**/*.js.map', included: false, watched: false}
+      'test-main.js'
     ],
 
-    // proxied base paths for loading assets
+    // must go along with above, suppress annoying 404 warnings.
     proxies: {
-      // required for component assets fetched by Angular's compiler
-      "/app/": appAssets
+      '/assets/': '/base/dist/dev/assets/'
     },
 
-    exclude: [],
-    preprocessors: {},
-    reporters: ['progress', 'html'],
+    // list of files to exclude
+    exclude: [
+      'node_modules/**/*spec.js'
+    ],
 
-    // HtmlReporter configuration
-    htmlReporter: {
-      // Open this file to see results in browser
-      outputFile: '_test-output/tests.html',
 
-      // Optional
-      pageTitle: 'Unit Tests',
-      subPageTitle: __dirname
+    // preprocess matching files before serving them to the browser
+    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+    preprocessors: {
+      'dist/**/!(*spec).js': ['coverage']
     },
 
+    // test results reporter to use
+    // possible values: 'dots', 'progress'
+    // available reporters: https://npmjs.org/browse/keyword/karma-reporter
+    reporters: ['mocha', 'coverage'],
+
+
+    // web server port
     port: 9876,
+
+
+    // enable / disable colors in the output (reporters and logs)
     colors: true,
+
+
+    // level of logging
+    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_INFO,
+
+
+    // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
-    browsers: ['Chrome'],
-    singleRun: false
-  })
-}
+
+
+    // start these browsers
+    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+    browsers: [
+      'PhantomJS',
+      'Chrome'
+    ],
+
+
+    customLaunchers: {
+      Chrome_travis_ci: {
+        base: 'Chrome',
+        flags: ['--no-sandbox']
+      }
+    },
+
+    coverageReporter: {
+      dir: 'coverage/',
+      reporters: [
+        { type: 'text-summary' },
+        { type: 'json', subdir: '.', file: 'coverage-final.json' },
+        { type: 'html' }
+      ]
+    },
+
+    // Continuous Integration mode
+    // if true, Karma captures browsers, runs the tests and exits
+    singleRun: false,
+
+    // Passing command line arguments to tests
+    client: {
+      files: argv.files
+    }
+  });
+
+  if (process.env.APPVEYOR) {
+    config.browsers = ['IE'];
+    config.singleRun = true;
+    config.browserNoActivityTimeout = 90000; // Note: default value (10000) is not enough
+  }
+
+  if (process.env.TRAVIS || process.env.CIRCLECI) {
+    config.browsers = ['Chrome_travis_ci'];
+    config.singleRun = true;
+  }
+};
