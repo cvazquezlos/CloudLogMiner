@@ -199,11 +199,17 @@ export class GridComponent {
             this.showLoadMore = true;
         }
 
+        let i =0;
+        let newArray = this.errorMessages;
         for(let msg of this.errorMessages) {
             if (msg.type && (msg.type.indexOf("info") === -1)) {     //errors have been bypassed
-                msg.text = "";
+                if(newArray.indexOf(msg) > -1) {
+                    newArray.splice(newArray.indexOf(msg), 1);
+                }
             }
+            i++;
         }
+        this.errorMessages = newArray;
 
         this.directories = this.getDirectories();
 
