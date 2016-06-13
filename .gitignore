@@ -3,11 +3,6 @@
 .DS_Store/
 node_modules/
 notas.docx
-app/*.js
-app/*.js.map
-app/**/*.js
-app/**/*.*.js
-app/**/*.*.js.map
-app/**/*.js.map
+dist/
 typings
 _test-output/
