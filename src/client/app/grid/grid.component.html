@@ -135,8 +135,8 @@
         </div>
       </div>
       <div class="row">
-          <button *ngIf="showLoadMore" (click)="loadMore(true)" class="btn btn-default">Load earlier</button>
-          <button *ngIf="showLoadEarlier" (click)="loadMore(false)" class="btn btn-default"  style="float:right">Load later</button>
+          <button *ngIf="showLoadMore" (click)="loadMore(true)" class="btn btn-default"><span class="glyphicon glyphicon-arrow-down"></span> Load earlier</button>
+          <button *ngIf="showLoadEarlier" (click)="loadMore(false)" class="btn btn-default"  style="float:right">Load later <span class="glyphicon glyphicon-arrow-up"></span></button>
       </div>
     </div>
   </div>

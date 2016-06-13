@@ -11,6 +11,7 @@ import {Observable} from "rxjs/Observable";
 
  const ES_URL = 'http://127.0.0.1:9200/';
  const INDEX = "<logstash-*>";
+ const MORE_DAYS = 200;     //Days to add when a loadMore request
 /*
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
 const INDEX = "<kurento-*>";*/
@@ -207,7 +208,11 @@ export class ElasticService {
         let requestOptions = this.wrapRequestOptions(url,body);
         this.currentRequest = requestOptions;
 
-        let observable = Observable.create((observer) => this.requestWithState(requestOptions, observer));
+        //IMPORTANT RESTART STATE WHEN REFRESH DATA
+        this.state.dateFilter = "";
+        this.state.filesFilter = "";
+
+        let observable = Observable.create((observer) => this.listAllLogs(requestOptions, observer));
 
         return observable;
     }
@@ -255,28 +260,31 @@ export class ElasticService {
     loadMore(lastLog: any, loadLater: boolean){
         if(this.currentRequest) {
             let logTime = lastLog.time || lastLog._source["@timestamp"];
-          let lessThan, greaterThan;
+            let lessThan, greaterThan;
+            let changeStateGreater;
             if(loadLater) {
               lessThan = logTime;
-              greaterThan = logTime+"||-200d"; //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
+              greaterThan = logTime+"||-"+MORE_DAYS+"d"; //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
+              changeStateGreater = true;
             } else {
-              lessThan = logTime+"||+200d";
+              lessThan = logTime+"||+"+MORE_DAYS+"d";
               greaterThan = logTime;
+              changeStateGreater = false;
             }
 
-            return this.loadByDate(lessThan, greaterThan)
+            return this.loadByDate(lessThan, greaterThan, true, changeStateGreater);
         } else {
             return Observable.create((ob) => {ob.complete()});
         }
     }
 
-    loadByDate(lessThan, greaterThan) {
+    loadByDate(lessThan, greaterThan, isLoadMore, greaterOrLesser) {
         let oldRequestGreaterThan;
         let notSupported = false;
         let newBody;
         if(this.currentRequest) {
             newBody = JSON.parse(this.currentRequest.body);
-            let i=0;
+
             let addition = {
                 range: {
                     "@timestamp": {
@@ -285,7 +293,18 @@ export class ElasticService {
                     }
                 }
             };
-            this.state.dateFilter = addition;
+
+
+            if(isLoadMore) {    //we will need to update state.dateFilter
+                let filterTime = this.state.dateFilter.range["@timestamp"];
+                if(greaterOrLesser) {
+                    filterTime.gte = greaterThan;   //we do not touch less than: it's the original one before load more
+                } else {
+                    filterTime.lte = lessThan;         //same for the opposite
+                }
+            } else {
+                this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
+            }
 
             let itHappenedBefore = false;
             if(newBody.query.bool) {
