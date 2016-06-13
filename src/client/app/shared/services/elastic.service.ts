@@ -295,7 +295,7 @@ export class ElasticService {
             };
 
 
-            if(isLoadMore) {    //we will need to update state.dateFilter
+            if(isLoadMore && this.state.dateFilter) {    //we will need to update state.dateFilter
                 let filterTime = this.state.dateFilter.range["@timestamp"];
                 if(greaterOrLesser) {
                     filterTime.gte = greaterThan;   //we do not touch less than: it's the original one before load more

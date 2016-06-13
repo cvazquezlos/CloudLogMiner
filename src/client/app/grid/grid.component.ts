@@ -93,29 +93,27 @@ export class GridComponent {
   public mark(input:string) {
     let i = 0;
     for (let row of this.rowData) {
-      if (!row.marked) {
-        for (let field in row) {
-          if (row.hasOwnProperty(field) && field != "marked") {        //Check that property doesn't belong to prototype & boolean cannot be searched
-            if (row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
-              this.rowData[i].marked = true;
-              break;
-            } else {
-              this.rowData[i].marked = false;
-            }
+      for (let field in row) {
+        if (row.hasOwnProperty(field) && field != "marked") {        //Check that property doesn't belong to prototype & boolean cannot be searched
+          if (row[field].toLowerCase().indexOf(input.toLowerCase()) != -1) {
+            this.rowData[i].marked = true;
+            break;
+          } else {
+            this.rowData[i].marked = false;
           }
         }
       }
       i++;
     }
     this.currentFilter = input;
-    this.gridOptions.api.softRefreshView();
+    this.gridOptions.api.refreshView();
   }
 
   public loadByDate(to:Date, from:Date) {
     if (from < to) {
       this.gridOptions.api.showLoadingOverlay();
       this.rowData = [];
-      this._elasticService.loadByDate(to, from).subscribe((res) => {
+      this._elasticService.loadByDate(to, from, false, false).subscribe((res) => {
           this.gridOptions.api.hideOverlay();
           this.rowData = this.rowData.concat(res);
           this.rowData = this.rowData.slice();
