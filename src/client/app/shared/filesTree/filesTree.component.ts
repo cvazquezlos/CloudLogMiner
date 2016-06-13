@@ -24,6 +24,14 @@ export class FilesTree {
                 dir.dirUnchecked.subscribe((unchecked)=> {
                     this.unchecked.emit(unchecked);
                 });
+                for (let file of dir.files) {
+                    file.dirChecked.subscribe((checkboxed)=> {
+                        this.checked.emit(checkboxed);
+                    });
+                    file.dirUnchecked.subscribe((unchecked)=> {
+                        this.unchecked.emit(unchecked);
+                    });
+                }
             }
         }
     }

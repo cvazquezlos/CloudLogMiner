@@ -9,12 +9,17 @@ export class Directory{
     
     name: string;
     directories: Array<Directory>;
-    files: Array<String>;
+    files: Array<Directory>;
     expanded: boolean;
     checked: boolean;
-    constructor(name,directories,files) {
+    constructor(name, directories, files) {
         this.name = name;
-        this.files = files;
+        this.files = [];
+        for(let f of files) {
+            let nf = new Directory(f, [], []);
+            this.files.push(nf);
+        }
+        //this.files = files;
         this.directories = directories;
         this.expanded = false;
         this.checked = false;

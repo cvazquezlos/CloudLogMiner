@@ -1,10 +1,12 @@
-<ul>
+<ul style="list-style-type:none">
     <li *ngFor="let dir of directories">
         <span><input type="checkbox" [checked]="dir.checked" (click)="dir.check(dir.name)"/></span>
-        <span (click)="dir.toggle()">{{ dir.name }}</span>
+        <span (click)="dir.toggle()"><span class="glyphicon glyphicon-folder-open"></span> {{ dir.name }}</span>
         <div *ngIf="dir.expanded">
-            <ul >
-                <li *ngFor="let file of dir.files">{{file}}</li>
+            <ul  style="list-style-type:none">
+                <li *ngFor="let file of dir.files">
+                    <span><input type="checkbox" [checked]="file.checked" (click)="file.check(file.name)"/></span>{{file.name}}
+                </li>
             </ul>
             <files-tree [directories]="dir.directories" (checked)="bubble($event)" (unchecked)="bubbleUnchecked($event)"></files-tree>
         </div>
