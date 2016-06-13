@@ -8,13 +8,14 @@ import {Http, RequestOptions, RequestMethod, Request} from '@angular/http';
 import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Observable";
 
-
+/*
  const ES_URL = 'http://127.0.0.1:9200/';
  const INDEX = "<logstash-*>";
- const MORE_DAYS = 200;     //Days to add when a loadMore request
-/*
+ */
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
-const INDEX = "<kurento-*>";*/
+const INDEX = "<kurento-*>";
+
+ const MORE_DAYS = 200;     //Days to add when a loadMore request
 
 
 @Injectable()

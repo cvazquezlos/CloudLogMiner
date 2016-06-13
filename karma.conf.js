@@ -7,6 +7,8 @@ var argv = require('yargs').argv;
 module.exports = function(config) {
   config.set({
 
+    browserNoActivityTimeout: 100000,
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: './',
 
@@ -42,11 +44,14 @@ module.exports = function(config) {
       { pattern: 'dist/dev/**/*.js', included: false, watched: true },
       { pattern: 'dist/dev/**/*.html', included: false, watched: true, served: true },
       { pattern: 'dist/dev/**/*.css', included: false, watched: true, served: true },
-      { pattern: 'dist/dev/app/grid/grid.component.spec.js', included:true, watched:true},
       { pattern: 'node_modules/systemjs/dist/system-polyfills.js', included: false, watched: false }, // PhantomJS2 (and possibly others) might require it
 
       // suppress annoying 404 warnings for resources, images, etc.
       { pattern: 'dist/dev/assets/**/*', watched: false, included: false, served: true },
+
+      //ag grid
+      {pattern: 'node_modules/ag-grid/**/*.js', included: false, watched:false},
+      {pattern: 'node_modules/ag-grid-ng2/**/*.js', included: false, watched:false},
 
       'test-main.js'
     ],
