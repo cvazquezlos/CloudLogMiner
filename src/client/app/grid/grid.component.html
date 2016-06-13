@@ -1,10 +1,10 @@
-<div [hidden]="!errorMessage.text" class="alert fade in" [class]="errorMessage.type">
+<div *ngFor="let error of errorMessages" class="alert fade in" [class]="error.type">
   <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
   <span class="sr-only">Error:</span>
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
-  <span id="errorMessage" [innerText]="errorMessage.text"></span>
+  <span id="error" [innerText]="error.text"></span>
 </div>
 
 
@@ -52,10 +52,6 @@
         </div>
         <button (click)="loadByDate(to.value, from.value)" class="btn btn-default" style="margin-left:1em">Search</button>
       </form>
-    </div>
-
-    <div class="row" [hidden]="!errorMessage">
-      <!--<p id="errorMessage" style="color:red" [innerText]="errorMessage"></p>-->
     </div>
 
     <div style="padding: 4px;" class="toolbar" class="row">

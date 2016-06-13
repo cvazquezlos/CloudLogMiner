@@ -208,7 +208,7 @@ export class ElasticService {
         let requestOptions = this.wrapRequestOptions(url,body);
         this.currentRequest = requestOptions;
 
-        //IMPORTANT RESTART STATE WHEN REFRESH DATA
+        //IMPORTANT RESTART STATE WHEN REFRESHING DATA
         this.state.dateFilter = "";
         this.state.filesFilter = "";
 
@@ -397,6 +397,14 @@ export class ElasticService {
         let observable = Observable.create((observer) =>
             this.requestWithState(requestOptions, observer));
 
+        return observable;
+    }
+
+    removeFileState() {
+        this.state.filesFilter = "";
+        //load grid without that filter
+        //current request have that filter set, but requestWithState updates it
+        let observable = Observable.create((observer) => this.requestWithState(this.currentRequest, observer));
         return observable;
     }
 
