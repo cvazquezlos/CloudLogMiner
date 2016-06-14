@@ -45,6 +45,8 @@ export class GridComponent {
 
     private treeHidden = false;
 
+    private rowSelected = {};
+
 
     constructor(private _elasticService:ElasticService) {
         this.showLoadMore = false;
@@ -403,6 +405,10 @@ export class GridComponent {
 
     public onRowClicked($event) {
         console.log('onRowClicked: ' + $event.node.data.time);
+        let row = $event.node.data;
+        let keys = Object.keys(row);
+        this.rowSelected = {data: row, keys};
+        window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight);
     }
 
 
