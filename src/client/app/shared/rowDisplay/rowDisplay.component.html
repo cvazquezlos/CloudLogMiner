@@ -1,0 +1,14 @@
+<div class=" panel panel-default">
+    <table class="table table-bordered" >
+        <thead>
+        <tr class="info">
+            <td *ngFor="let k of row.keys">{{k | uppercase}}</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td *ngFor="let key of row.keys">{{row.data[key]}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

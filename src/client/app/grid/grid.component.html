@@ -141,17 +141,4 @@
     </div>
 </div>
 
-<div class="row panel panel-default" style="margin-right:0.5em; margin-top:0.5em">
-    <table class="table table-bordered" >
-        <thead>
-            <tr class="info">
-                <td *ngFor="let k of rowSelected.keys">{{k | uppercase}}</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td *ngFor="let key of rowSelected.keys">{{rowSelected.data[key]}}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+<sd-rowdisplay [row]="rowSelected" *ngIf="rowSelected" style="margin-right:0.5em; margin-top:0.5em"></sd-rowdisplay>

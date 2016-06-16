@@ -3,14 +3,14 @@
  */
 
 //Removed map.d import as no necessary
-import {Injectable,EventEmitter} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Http, RequestOptions, RequestMethod, Request} from '@angular/http';
 import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Observable";
+import {Observer} from "rxjs/Rx";
 
 
- const ES_URL = 'http://127.0.0.1:9200/';
- const INDEX = "<logstash-*>";
+
 
 /*
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
@@ -21,6 +21,9 @@ const INDEX = "<kurento-*>";
 
 @Injectable()
 export class ElasticService {
+
+    public elasticURL; //= 'http://127.0.0.1:9200/';
+    public elasticINDEX; //= "<logstash-*>";
 
 
     scroll:string = "";         //Elasticsearch scroll indicator
@@ -59,7 +62,7 @@ export class ElasticService {
             });
     }
 
-    public requestWithState(requestOptions:any, emitter) {
+    public requestWithState(requestOptions:any, emitter: Observer<any>) {
       //Check state
         let actualbody = JSON.parse(requestOptions.body);
         let dateFilterHappenedBefore = false;
@@ -116,14 +119,19 @@ export class ElasticService {
         this.listAllLogs(requestOptions, emitter);
     }
 
-    public listAllLogs(requestOptions:any, emitter): void {
+    /*
+     * Lists all logs matching the API options
+     */
+    public listAllLogs(requestOptions:any, emitter: Observer<any>, allfields: boolean = false): void {
 
         this._http.request(new Request(requestOptions))
             .map((responseData)=> { return responseData.json()})        //Important include 'return' keyword
             .map((answer)=> {
                 let id = answer._scroll_id;
                 this.scroll = id;                //id has to be assigned before mapLogs, which only returns the hits.
-                answer=this.mapLogs(answer);
+
+                answer = this.mapLogs(answer, allfields);
+
                 return answer;
             })
             .subscribe(batch=> {
@@ -134,7 +142,7 @@ export class ElasticService {
                         "scroll" : "1m",
                         "scroll_id" : this.scroll
                     };
-                    let url2 = ES_URL + '_search/scroll';
+                    let url2 = this.elasticURL + '_search/scroll';
                     let requestOptions2 = this.wrapRequestOptions(url2, body2);
                     this.listAllLogs(requestOptions2, emitter);
                     return;
@@ -152,7 +160,7 @@ export class ElasticService {
     }
 
     public getRowsDefault() {            //NOTE SCROLL ID! Elasticsearch scroll wouldn't work without it
-        let url =ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
+        let url =this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
         let body= {
         sort: [
                 { "@timestamp": "desc" }
@@ -244,7 +252,7 @@ export class ElasticService {
                 sort
 
         };
-        let url = ES_URL + INDEX + '/_search?scroll=1m';
+        let url = this.elasticURL + this.elasticINDEX + '/_search?scroll=1m';
 
         let requestOptions2 = this.wrapRequestOptions(url,body);
         if (!orderByRelevance) {            //Fetching more as it is implemented now uses timestamp of the older log
@@ -392,7 +400,7 @@ export class ElasticService {
 
         this.state.filesFilter = addition;
 
-        let url = ES_URL + INDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
+        let url = this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
 
         let requestOptions = this.wrapRequestOptions(url, newBody);
 
@@ -400,6 +408,31 @@ export class ElasticService {
             this.requestWithState(requestOptions, observer));
 
         return observable;
+    }
+
+    /*
+     * Gets more recent log of index, for config purposes
+     */
+    getFirstLog() {
+        let body = {
+            "query": {
+                "match_all": {}
+            },
+            "size": 1,
+            "sort": [
+                {
+                    "_timestamp": {
+                        "order": "desc"
+                    }
+                }
+            ]
+        };
+        let url =this.elasticURL + this.elasticINDEX +'/_search';
+        let requestOptions = this.wrapRequestOptions(url,body);
+        let observable = Observable.create((observer: Observer<any>) =>
+            this.listAllLogs(requestOptions, observer, true));
+
+        return observable.map((elasticlist: Array<any>) => elasticlist[0]); //ElasticService returns an array of one element
     }
 
     removeFileState() {
@@ -418,11 +451,16 @@ export class ElasticService {
         });
     }
 
-    mapLogs(answer): any[] {
+    mapLogs(answer: any, allfields: boolean = false): any[] {
         let result: any[]=[];
         if(answer) {
-            for(let a of answer.hits.hits){
-                let b=this.elasticLogProcessing(a);
+            for(let a of answer.hits.hits) {
+                let b:any;
+                if (!allfields) {
+                    b = this.elasticLogProcessing(a);
+                } else {
+                    b = this.selectingFieldsProcessing(a);
+                }
                 result.push(b);
             }
         }
@@ -457,6 +495,18 @@ export class ElasticService {
 
         let logValue = {type, time, message, level, thread, logger, host, path};
 
+        return logValue;
+    }
+
+    /*
+     * Needed for initial configuration in which there is need to select attribures of interest in an example log
+     */
+    selectingFieldsProcessing(logEntry) {
+        let logValue = {};
+        console.log(logEntry._type);
+        for(let k of Object.keys(logEntry._source)) {
+            logValue[k] = logEntry._source[k];
+        }
         return logValue;
     }
 }

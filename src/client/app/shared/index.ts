@@ -4,3 +4,7 @@
 export * from './name-list/index';
 export * from './navbar/index';
 export * from './toolbar/index';
+export * from './services/index';
+export * from './filesTree/index';
+export * from './utils/index';
+export * from './rowDisplay/index';

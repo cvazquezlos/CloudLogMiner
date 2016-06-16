@@ -5,10 +5,7 @@ import {Component} from '@angular/core';
 import {AgGridNg2} from 'ag-grid-ng2/main';
 import {GridOptions} from 'ag-grid/main';
 import {toInputLiteral} from '../shared/utils/DateUtils';
-import {ElasticService} from "../shared/services/elastic.service";
-import {FilesTree} from "../shared/filesTree/filesTree.component";
-import {Directory} from "../shared/filesTree/directory";
-import {getDirectories} from '../shared/utils/formatter';
+import {ElasticService, FilesTree, Directory, getDirectories, RowDisplay} from "../shared/index";
 
 /*@Component({
  moduleId: module.id,
@@ -21,7 +18,7 @@ import {getDirectories} from '../shared/utils/formatter';
     moduleId: module.id,
     selector: 'sd-grid',
     templateUrl: 'grid.component.html',
-    directives: [FilesTree, AgGridNg2]
+    directives: [FilesTree, AgGridNg2, RowDisplay]
 })
 export class GridComponent {
 
@@ -47,7 +44,12 @@ export class GridComponent {
 
     private rowSelected = {};
 
-
+    /**
+     * Creates an instance of the GridCompoenent with the injected
+     * ElasticService.
+     *
+     * @param {ElasticService} elasticService - The injected ElasticService.
+     */
     constructor(private _elasticService:ElasticService) {
         this.showLoadMore = false;
         this.showLoadEarlier = false;

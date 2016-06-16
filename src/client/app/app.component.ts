@@ -21,6 +21,10 @@ import { NameListService, NavbarComponent, ToolbarComponent } from './shared/ind
 @Routes([
   {
     path: '/',
+    component: HomeComponent
+  },
+  {
+    path: '/grid',
     component: GridComponent
   },
   {
