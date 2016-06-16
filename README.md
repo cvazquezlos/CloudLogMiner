@@ -7,7 +7,10 @@ The tool fetches logs from an elasticSearch instance. The current configuration 
 https://itsnotafunction.wordpress.com/
 
 ## Preview
-![Alt text](https://cloud.githubusercontent.com/assets/10989693/15807538/49d60a20-2b61-11e6-9a13-efd04a5235e5.png?raw=true "Captura")
+![Alt text](https://cloud.githubusercontent.com/assets/10989693/16114663/b287317a-33c2-11e6-8521-3a1529563c87.png)
+
+Log selection:
+![Alt text](https://cloud.githubusercontent.com/assets/10989693/16114677/bfe72fd2-33c2-11e6-9468-1d80c589619b.png)
 
 ## Compatibility
 Cloud Log Miner is capable of processing and displaying logs from any system as long as they have some common parameters and are deployed in an ElasticSearch instance. Field selection will be possible soon.
@@ -69,7 +72,7 @@ http.cors.allow-origin : "localhost"
 ```
 
 2. Use the 'Run project' commands in a separate terminal window. Your browser will show the initialization.
-![Alt text](https://cloud.githubusercontent.com/assets/10989693/15807945/91c93448-2b6a-11e6-9921-c0676d08c50a.png)
+![Alt text](https://cloud.githubusercontent.com/assets/10989693/16114756/3ca49d66-33c3-11e6-83ff-cc449fb4fc62.png)
 
 3. Start taking advantage of all the functionalities!
 
