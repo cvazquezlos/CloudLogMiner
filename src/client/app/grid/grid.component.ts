@@ -7,13 +7,6 @@ import {GridOptions} from 'ag-grid/main';
 import {toInputLiteral} from '../shared/utils/DateUtils';
 import {ElasticService, FilesTree, Directory, getDirectories, RowDisplay} from "../shared/index";
 
-/*@Component({
- moduleId: module.id,
- selector: 'my-app',
- templateUrl: 'grid.component.html',
- directives: [AgGridNg2, FilesTree],
- styles: ['.toolbar button {margin: 2px; padding: 0px;}'],
- })*/
 @Component({
     moduleId: module.id,
     selector: 'sd-grid',
@@ -34,7 +27,7 @@ export class GridComponent {
 
     private searchByRelevance:boolean;
     public currentFilter:string;
-    public errorMessages:Array<{text:string, type:string}>;
+    public errorMessage: {text:string, type:string};
     public directories:Array<Directory>;
 
     private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
@@ -62,7 +55,7 @@ export class GridComponent {
         this.createColumnDefs();
         this.showGrid = true;
         this.searchByRelevance = false;
-        this.errorMessages = [];
+        this.errorMessage = {text:"", type:""};
     }
 
     ngAfterContentInit() {         //It needs to be done after the grid api has been set, to be able to use its methods
@@ -84,7 +77,7 @@ export class GridComponent {
                 },
                 (complete) => {
                     this.subscribeComplete();
-                    this.errorMessages = [];  //we restart messages
+                    this.errorMessage = {text:"", type:""};  //we restart messages
                 });
     }
 
@@ -151,10 +144,10 @@ export class GridComponent {
 
         this._elasticService.loadMore(log, loadLater).subscribe((res) => {   //load earlier: true, load later: false
                 this.gridOptions.api.hideOverlay();
-                if (loadLater) {
-                    this.rowData = this.rowData.concat(res);
-                } else {
+                if (!loadLater) {
                     this.rowData = res.concat(this.rowData);
+                } else {
+                    this.rowData = this.rowData.concat(res);
                 }
 
                 this.rowData = this.rowData.slice();
@@ -190,7 +183,6 @@ export class GridComponent {
                 this.rowData = this.rowData.slice();
             }, (err)=> this.subscribeError("Error when unchecking source files"),
             (complete) => this.subscribeComplete());
-        this.removeErrorAlert("files");
     }
 
     private subscribeComplete() {
@@ -202,18 +194,6 @@ export class GridComponent {
         if (this.rowData.length > 49) {
             this.showLoadMore = true;
         }
-
-        let i =0;
-        let newArray = this.errorMessages;
-        for(let msg of this.errorMessages) {
-            if (msg.type && (msg.type.indexOf("info") === -1)) {     //errors have been bypassed
-                if(newArray.indexOf(msg) > -1) {
-                    newArray.splice(newArray.indexOf(msg), 1);
-                }
-            }
-            i++;
-        }
-        this.errorMessages = newArray;
 
         this.directories = this.getDirectories();
 
@@ -433,18 +413,14 @@ export class GridComponent {
         if (type === "error") {
             type = "danger";
         }
-        this.errorMessages.push({
+        this.errorMessage = {
             text: message,
             type: "alert-" + type + " alert fade in alert-dismissible"
-        });
+        };
 
-    }
+        setTimeout(() => {
+            this.errorMessage = {text:"", type:""};
+        }, 10000);
 
-    private removeErrorAlert(msgcontains: string) {
-        for(let msg of this.errorMessages) {
-            if (msg.type.indexOf(msgcontains) === -1) {     //errors have been bypassed
-                msg.text = "";
-            }
-        }
     }
 }
