@@ -22,8 +22,8 @@ const INDEX = "<kurento-*>";
 @Injectable()
 export class ElasticService {
 
-    public elasticURL; //= 'http://127.0.0.1:9200/';
-    public elasticINDEX; //= "<logstash-*>";
+    public elasticURL = 'http://127.0.0.1:9200/';
+    public elasticINDEX = "<logstash-*>";
 
 
     scroll:string = "";         //Elasticsearch scroll indicator
@@ -73,11 +73,13 @@ export class ElasticService {
                 if (actualbody.query.bool) {
                     let i = 0;
                     for (let musts of actualbody.query.bool.must) {
-                        if (musts.range && this.state.dateFilter) {             //check if loadByDate has already happened in current request
+
+                        if (musts.range && this.state.dateFilter) {             // if loadByDate has already happened in current request
                           actualbody.query.bool.must[i].range = this.state.dateFilter.range;
                           dateFilterHappenedBefore = true;
-                        } else if (musts['query_string'] && this.state.filesFilter) {
-                          actualbody.query.bool.must[i]['query_string'] = this.state.filesFilter['query_string'];
+
+                        } else if ((musts['query_string']||musts.bool) && this.state.filesFilter) {     //musts.bool indicates more than one file filter
+                          actualbody.query.bool.must[i] = this.state.filesFilter;
                           fileFilterHappenedBefore = true;
                         }
                         i++;
@@ -163,7 +165,7 @@ export class ElasticService {
         let url =this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
         let body= {
         sort: [
-                { "@timestamp": "desc" }
+                { "@timestamp": "asc" }
             ],
             query: {
                 bool: {
@@ -234,7 +236,7 @@ export class ElasticService {
             let options1 = "_score";
             sort = [options1]
         }else{
-             let options2 = { '@timestamp': 'desc'};
+             let options2 = { '@timestamp': 'asc'};
             sort = [options2];
         }
         let body = {
@@ -272,14 +274,14 @@ export class ElasticService {
             let logTime = lastLog.time || lastLog._source["@timestamp"];
             let lessThan, greaterThan;
             let changeStateGreater;
-            if(loadLater) {
-              lessThan = logTime;
-              greaterThan = logTime+"||-"+MORE_DAYS+"d"; //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
-              changeStateGreater = true;
+            if(loadLater) {     //later in time: closer to today
+                lessThan = logTime+"||+"+MORE_DAYS+"d";
+                greaterThan = logTime;
+                changeStateGreater = false;
             } else {
-              lessThan = logTime+"||+"+MORE_DAYS+"d";
-              greaterThan = logTime;
-              changeStateGreater = false;
+                lessThan = logTime;
+                greaterThan = logTime+"||-"+MORE_DAYS+"d"; //"Date Math starts with an anchor date, which can either be now, or a date string ending with ||. (ElasticSearch)"
+                changeStateGreater = true;
             }
 
             return this.loadByDate(lessThan, greaterThan, true, changeStateGreater);
@@ -312,6 +314,7 @@ export class ElasticService {
                 } else {
                     filterTime.lte = lessThan;         //same for the opposite
                 }
+                this.state.dateFilter.range["@timestamp"] = filterTime;
             } else {
                 this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
             }
@@ -330,7 +333,7 @@ export class ElasticService {
             }
             if(!itHappenedBefore) {
                 let futuremust;
-                if(newBody.query.bool.must) {
+                if(newBody.query.bool && newBody.query.bool.must) {
                     futuremust = newBody.query.bool.must;
                     futuremust.push(addition);
                 } else {
@@ -350,7 +353,14 @@ export class ElasticService {
         let loadMoreObservable = Observable.create((observer) => {
             if (/*!(oldRequestGreaterThan === greaterThan) && */!notSupported) {     //Last request and last log match. It means there has been a load more with the same result: no more results to be fetched
                 this.currentRequest.body = JSON.stringify(newBody);
-                let observableAux = Observable.create((observeraux) => this.requestWithState(this.currentRequest, observeraux));
+                let observableAux;
+                if(!isLoadMore) {
+                    observableAux = Observable.create((observeraux) => this.requestWithState(this.currentRequest, observeraux));
+                } else {
+                    //We have updated the state for later, but we want to fetch what is left in the grid, not everything again
+                    observableAux = Observable.create((observeraux) => this.listAllLogs(this.currentRequest, observeraux));
+                }
+
                 observableAux.subscribe(logs => {
                     observer.next(logs);
                 }, (err)=>console.log(err), ()=>{observer.complete()});
@@ -370,18 +380,41 @@ export class ElasticService {
                 "query": "*" + file + "*"
             }
         };
+
         let itHappenedBefore = false;
         if(newBody.query.bool) {
             let i = 0;
+
             for(let musts of newBody.query.bool.must) {
-                if(musts['query_string']) {             //check if loadByDate has already happened in current request
-                    newBody.query.bool.must[i]['query_string'] = addition['query_string'];
+                if (musts.bool) {               //We are already filtering by 2 or more other files
+                    newBody.query.bool.must[i].bool.should.push(addition);
+
                     itHappenedBefore = true;
+                    this.state.filesFilter = newBody.query.bool.must[i];
+                    break
+                } else if(musts['query_string']) {      //we were filtering by another file
+
+                    newBody.query.bool.must[i] = {
+                        bool: {
+                            should: [
+                                musts,
+                                addition
+                            ]
+                        }
+                    };
+                    itHappenedBefore = true;
+                    this.state.filesFilter = newBody.query.bool.must[i];
                     break;
                 }
                 i++;
             }
+            if(!itHappenedBefore) {
+                this.state.filesFilter = addition;
+            }
+        } else {
+            this.state.filesFilter = addition;
         }
+/*
         if(!itHappenedBefore) {
             let futuremust;
             if(newBody.query.bool.must) {
@@ -396,16 +429,16 @@ export class ElasticService {
                       futuremust
                 }
             };
-        }
 
-        this.state.filesFilter = addition;
+            this.state.filesFilter = addition;
+        }
 
         let url = this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
 
         let requestOptions = this.wrapRequestOptions(url, newBody);
-
+*/
         let observable = Observable.create((observer) =>
-            this.requestWithState(requestOptions, observer));
+            this.requestWithState(this.currentRequest, observer));
 
         return observable;
     }
@@ -422,7 +455,7 @@ export class ElasticService {
             "sort": [
                 {
                     "_timestamp": {
-                        "order": "desc"
+                        "order": "asc"
                     }
                 }
             ]
