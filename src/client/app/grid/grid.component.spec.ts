@@ -20,7 +20,7 @@ import {ViewMetadata}   from '@angular/core';
 import {PromiseWrapper} from '@angular/core/src/facade/promise';
 
 
-import {ElasticService} from "../shared/services/elastic.service";
+import {ElasticService} from "../shared/index";
 import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Rx";
 import {fakeRowsProcessed} from "../shared/utils/fakeData";

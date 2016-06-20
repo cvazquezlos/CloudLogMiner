@@ -32,6 +32,9 @@ export function main() {
             elasticService = es;
             //Mock data length is 40
             elasticService.maxResults = 40;
+            elasticService.elasticURL = 'http://127.0.0.1:9200/';
+            elasticService.elasticINDEX = '<logstash-*>';
+
             const baseResponse = new Response(new ResponseOptions({body: JSON.stringify(fakeData)}));
             backend.connections.subscribe((c) => c.mockRespond(baseResponse));
         }));
@@ -68,7 +71,7 @@ export function main() {
                 elasticService.loadMore(elasticService.elasticLogProcessing(lastLog)).subscribe(() => {
                     lt = "2016-04-17T08:10:55.601Z";    //static fake data consistent with lastLog (changes in variable requestOptions)
                     gt = "2016-04-17T08:10:55.601Z||-200d";
-                    expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt);
+                    expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt, true, true);
                     expect(elasticService.listAllLogs).toHaveBeenCalledWith(elasticService.currentRequest, jasmine.anything());
                 });
             });
@@ -150,7 +153,7 @@ export function main() {
                         }
                     },
                     size:40,
-                    sort: [{ '@timestamp': 'desc'}]
+                    sort: [{ '@timestamp': 'asc'}]
                 };
                 let url = 'http://127.0.0.1:9200/<logstash-*>' + '/_search?scroll=1m';
 
@@ -206,12 +209,62 @@ export function main() {
                     };
                     let expectedRequest = elasticService.currentRequest;
                     expectedRequest.body = expectedBody;
-                    expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt);
+                    expect(elasticService.loadByDate).toHaveBeenCalledWith(lt, gt, true, true);
                     expect(elasticService.listAllLogs).toHaveBeenCalledWith(expectedRequest, jasmine.anything());
                 });
             });
         });
 
+        it('should handle state properly', () => {
+            elasticService.search("test", false);
+            let lastLog = fakeData.hits.hits[0];
+            spyOn(elasticService, 'loadByDate').and.callThrough();
+            spyOn(elasticService, 'listAllLogs').and.callThrough();
+            elasticService.loadMore(lastLog, false).subscribe((d) => {
+                d.reverse();
+                expect(elasticService.state.dateFilter.range).toEqual({
+                    "@timestamp": {
+                        "gte": "2016-04-17T08:10:55.601Z||-200d",
+                        "lte": "2016-04-17T08:10:55.601Z"
+                    }
+                });
+                elasticService.loadMore(d[0],false). subscribe(()=> {           //NO VA A FUNCIONAR PORQUE ELASTICSERVICE MOCKEA, NO HACE PETICION REAL!
+                    expect(elasticService.state.dateFilter.range).toEqual({
+                        "@timestamp": {
+                            "gte": "2016-04-12T08:00:43.466Z||-200d",
+                            "lte": "2016-04-17T08:10:55.601Z"
+                        }
+                    });
+
+                    let expectedBody = {
+                        "query":{
+                            "bool": {
+                                "must": [
+                                    {"range": {
+                                        "@timestamp": {
+                                            "lte": "2016-04-12T08:10:55.601Z",
+                                            "gte": "2016-04-12T08:10:55.601Z||-200d"
+                                        }
+                                    }},
+                                    {"multi_match": {
+                                        "query":"test",
+                                        "type":"best_fields",
+                                        "fields": ["_index"],
+                                        "tie_breaker":0.3,
+                                        "minimum_should_match":"30%"
+                                    }}
+                                ]
+                            }
+                        }
+                    };
+                    let expectedRequest = elasticService.currentRequest;
+                    expectedRequest.body = expectedBody;
+                    expect(elasticService.listAllLogs).toHaveBeenCalledWith(expectedRequest, jasmine.anything());
+                });
+            });
+
+
+        });
 
         it('elasticLogProcessing should return a formatted log', () => {
             let toBeChecked = elasticService.elasticLogProcessing(fakeData.hits.hits[0]);

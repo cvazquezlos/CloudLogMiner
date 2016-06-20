@@ -27,7 +27,9 @@ System.config({
   defaultJSExtensions: true,
   map: {
     'rxjs': 'node_modules/rxjs',
-    '@angular': 'node_modules/@angular'
+    '@angular': 'node_modules/@angular',
+    'ag-grid': 'node_modules/ag-grid',
+    'ag-grid-ng2': 'node_modules/ag-grid-ng2'
   },
   packages: {
     '@angular/core': {
