@@ -32,6 +32,8 @@ export class GridComponent {
 
     private defaultFrom = new Date(new Date().valueOf() - (10 * 60 * 60 * 1000));
     private defaultTo = new Date(new Date().valueOf() - (1 * 60 * 60 * 1000));
+    public inputTo;
+    public inputFrom;
 
     private treeHidden = false;
 
@@ -56,6 +58,8 @@ export class GridComponent {
         this.showGrid = true;
         this.searchByRelevance = false;
         this.errorMessage = {text:"", type:""};
+        this.inputTo = this.getDefaultToValue(this.defaultTo);
+        this.inputFrom = this.getDefaultFromValue(this.defaultFrom);
     }
 
     ngAfterContentInit() {         //It needs to be done after the grid api has been set, to be able to use its methods
@@ -111,7 +115,8 @@ export class GridComponent {
         this.gridOptions.api.refreshView();
     }
 
-    public loadByDate(to:Date, from:Date) {
+    public loadByDate(from:Date, to:Date) {
+        this.rowData = [];                //RESTART ROW DATA or it will be appended after default rows
         if (from < to) {
             this.gridOptions.api.showLoadingOverlay();
             this.rowData = [];
@@ -126,10 +131,32 @@ export class GridComponent {
                     this.subscribeComplete()
                 });
         } else {
-            this.setErrorAlert("Please enter a valid date", "error");
+            this.setErrorAlert("Please enter a valid date and try again", "error");
         }
     }
 
+    public generalSearch(from, to, searchinput) {
+        this.rowData = [];                //RESTART ROW DATA or it will be appended after default rows
+        if(!searchinput) {
+            this.loadByDate(from, to)
+        } else {
+            if (from < to) {
+                this._elasticService.generalSearch(to, from, searchinput).subscribe((res) => {
+                        this.gridOptions.api.hideOverlay();
+                        this.rowData = this.rowData.concat(res);
+                        this.rowData = this.rowData.slice();
+
+                    }, (err)=> this.subscribeError("Error when loading by date and input. " + err),
+                    (complete) => {
+                        this.setErrorAlert("INFO: From now on logs will exclusively be fetched between the selected dates", "info");
+                        this.subscribeComplete()
+                    });
+            }else {
+                this.setErrorAlert("Please enter a valid date and try again", "error");
+            }
+        }
+    }
+    
     public loadMore(loadLater:boolean) {
         this.gridOptions.api.showLoadingOverlay();
         let r = this.rowCount.split("/");           //Number of displayed logs comes from the grid
@@ -204,7 +231,13 @@ export class GridComponent {
             if (this.earliestDate !== firstTime) {
                 this.showLoadEarlier = true;
             }
+
+            //set date inputs to current dates to respect service state
+            this.inputFrom = this.getDefaultFromValue(new Date(firstTime));
+            let lastTime = this.rowData[this.rowData.length-1].time || this.rowData[this.rowData.length-1]["@timestamp"];
+            this.inputTo = this.getDefaultFromValue(new Date(lastTime);
         }
+
 
     }
 
@@ -401,12 +434,12 @@ export class GridComponent {
     }
 
 // AUX METHODS ------------------------------
-    getDefaultFromValue() {
-        return toInputLiteral(this.defaultFrom);
+    getDefaultFromValue(date) {
+        return toInputLiteral(date);
     }
 
-    getDefaultToValue() {
-        return toInputLiteral(this.defaultTo);
+    getDefaultToValue(date) {
+        return toInputLiteral(date);
     }
 
     private setErrorAlert(message:string, type:string) {

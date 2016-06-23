@@ -290,6 +290,43 @@ export class ElasticService {
         }
     }
 
+    changeStateDateFilter(lessThan, greaterThan, isLoadMore, greaterOrLesser) {
+        if(this.currentRequest) {
+            let newBody = JSON.parse(this.currentRequest.body);
+
+            let addition = {
+                range: {
+                    "@timestamp": {
+                        "gte": greaterThan,
+                        "lte": lessThan
+                    }
+                }
+            };
+
+            if (isLoadMore && this.state.dateFilter) {    //we will need to update state.dateFilter
+                let filterTime = this.state.dateFilter.range["@timestamp"];
+                if (greaterOrLesser) {
+                    filterTime.gte = greaterThan;   //we do not touch less than: it's the original one before load more
+                } else {
+                    filterTime.lte = lessThan;         //same for the opposite
+                }
+                this.state.dateFilter.range["@timestamp"] = filterTime;
+            } else {
+                this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
+            }
+        } else {
+            let addition = {
+                range: {
+                    "@timestamp": {
+                        "gte": greaterThan,
+                        "lte": lessThan
+                    }
+                }
+            };
+            this.state.dateFilter = addition;
+        }
+    }
+
     loadByDate(lessThan, greaterThan, isLoadMore, greaterOrLesser) {
         let oldRequestGreaterThan;
         let notSupported = false;
@@ -306,18 +343,7 @@ export class ElasticService {
                 }
             };
 
-
-            if(isLoadMore && this.state.dateFilter) {    //we will need to update state.dateFilter
-                let filterTime = this.state.dateFilter.range["@timestamp"];
-                if(greaterOrLesser) {
-                    filterTime.gte = greaterThan;   //we do not touch less than: it's the original one before load more
-                } else {
-                    filterTime.lte = lessThan;         //same for the opposite
-                }
-                this.state.dateFilter.range["@timestamp"] = filterTime;
-            } else {
-                this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
-            }
+            this.changeStateDateFilter(lessThan, greaterThan, isLoadMore, greaterOrLesser);  //we will need to update state.dateFilter
 
             let itHappenedBefore = false;
             if(newBody.query.bool) {
@@ -370,6 +396,12 @@ export class ElasticService {
             }
         });
         return loadMoreObservable;
+    }
+
+    generalSearch(to, from, searchinput) {          //search with date and query
+        this.changeStateDateFilter(to, from, false, false);
+        return this.search(searchinput);
+
     }
 
     loadByFile(file:string) {
