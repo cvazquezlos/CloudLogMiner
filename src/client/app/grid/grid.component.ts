@@ -39,6 +39,8 @@ export class GridComponent {
 
     private rowSelected = {};
 
+    private currentlyChecked = [];
+
     /**
      * Creates an instance of the GridCompoenent with the injected
      * ElasticService.
@@ -58,8 +60,8 @@ export class GridComponent {
         this.showGrid = true;
         this.searchByRelevance = false;
         this.errorMessage = {text:"", type:""};
-        this.inputTo = this.getDefaultToValue(this.defaultTo);
-        this.inputFrom = this.getDefaultFromValue(this.defaultFrom);
+        this.inputTo = this.parseDate(this.defaultTo);
+        this.inputFrom = this.parseDate(this.defaultFrom);
     }
 
     ngAfterContentInit() {         //It needs to be done after the grid api has been set, to be able to use its methods
@@ -188,6 +190,8 @@ export class GridComponent {
     }
 
     private dirChecked(dir: string) {
+        this.currentlyChecked.push(dir);
+
         this.rowData = [];
         this._elasticService.loadByFile(dir).subscribe((res) => {
             this.gridOptions.api.hideOverlay();
@@ -197,22 +201,25 @@ export class GridComponent {
         }, (err) => this.subscribeError("Error when checking source files"),
         (complete) => {
             this.setErrorAlert("INFO: From now on logs will exclusively be fetched from selected files", "info");
-            this.subscribeComplete();
+            this.subscribeComplete(false);
         });
     }
 
     private dirUnchecked(dir) {
+        this.currentlyChecked.splice(this.currentlyChecked.indexOf(dir), 1);
+
         this.rowData = [];
         this.gridOptions.api.showLoadingOverlay();
-        this._elasticService.removeFileState().subscribe((res) => {     //returns actual request without file filter
+        this._elasticService.removeFileState(dir).subscribe((res) => {     //returns actual request without file filter
                 this.gridOptions.api.hideOverlay();
                 this.rowData = this.rowData.concat(res);
                 this.rowData = this.rowData.slice();
             }, (err)=> this.subscribeError("Error when unchecking source files"),
-            (complete) => this.subscribeComplete());
+            (complete) => this.subscribeComplete(false));
     }
 
-    private subscribeComplete() {
+    private subscribeComplete(refreshDirectories: boolean=true) {
+        this.rowData[0].path = "/jiji/p.js";
         console.log("Done");
         //Need to apply the marker
         if (this.currentFilter) {
@@ -222,7 +229,9 @@ export class GridComponent {
             this.showLoadMore = true;
         }
 
-        this.directories = this.getDirectories();
+        if(refreshDirectories) {
+            this.directories = this.getDirectories();
+        }
 
         if (this.rowData) {
             let firstTime = this.rowData[0].time || this.rowData[0]["@timestamp"];
@@ -233,9 +242,9 @@ export class GridComponent {
             }
 
             //set date inputs to current dates to respect service state
-            this.inputFrom = this.getDefaultFromValue(new Date(firstTime));
+            this.inputFrom = this.parseDate(new Date(firstTime));
             let lastTime = this.rowData[this.rowData.length-1].time || this.rowData[this.rowData.length-1]["@timestamp"];
-            this.inputTo = this.getDefaultFromValue(new Date(lastTime);
+            this.inputTo = this.parseDate(new Date(lastTime));
         }
 
 
@@ -434,11 +443,7 @@ export class GridComponent {
     }
 
 // AUX METHODS ------------------------------
-    getDefaultFromValue(date) {
-        return toInputLiteral(date);
-    }
-
-    getDefaultToValue(date) {
+    parseDate(date) {
         return toInputLiteral(date);
     }
 

@@ -12,6 +12,7 @@ import {Directory} from './directory';
 })
 export class FilesTree {
     @Input() directories: Array<Directory>;
+    @Input() markedBefore: Array<Directory>;
     @Output() checked = new EventEmitter<string>();
     @Output() unchecked = new EventEmitter<string>();
 
@@ -33,7 +34,10 @@ export class FilesTree {
                     });
                 }
             }
+
+            this.markFromPreviousPetition(this.directories);
         }
+
     }
 
     bubble(event) {
@@ -42,5 +46,35 @@ export class FilesTree {
 
     bubbleUnchecked(event) {
         this.directories[0].dirUnchecked.emit(event);
+    }
+
+    markFromPreviousPetition(directories: Array<Directory>) {
+        if(this.markedBefore) {
+            for(let d of directories) {
+                for(let f of d.files) {
+                    if(this.markedBefore.indexOf(f.name) > -1) {
+                        f.checked = true;
+                    }
+                }
+
+                if(this.markedBefore.indexOf(d.name) > -1) {
+                    d.checked = true;
+
+                } else {
+                    //Recursively check all nested directories or files to see if marked. If marked its father is toggled.
+                    this.markFromPreviousPetition(d.directories);
+                    for(let di of d.directories) {
+                        if(di.checked) {
+                            d.toggle();
+                        }
+                    }
+                    for (let f of d.files) {
+                        if(f.checked) {
+                            d.toggle();
+                        }
+                    }
+                }
+            }
+        }
     }
 }

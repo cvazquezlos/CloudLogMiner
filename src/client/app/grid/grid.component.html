@@ -137,7 +137,7 @@
                 </div>
                 <div id="tree" style="overflow:scroll" [ngClass]="{'col-md-2': !treeHidden,'col-md-0': treeHidden}">
                     <h4>Source Files</h4>
-                    <files-tree [directories]="directories" (checked)="dirChecked($event)"
+                    <files-tree [directories]="directories" [markedBefore]="currentlyChecked" (checked)="dirChecked($event)"
                                 (unchecked)="dirUnchecked($event)"></files-tree>
                 </div>
             </div>

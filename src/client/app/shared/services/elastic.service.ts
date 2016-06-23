@@ -446,29 +446,7 @@ export class ElasticService {
         } else {
             this.state.filesFilter = addition;
         }
-/*
-        if(!itHappenedBefore) {
-            let futuremust;
-            if(newBody.query.bool.must) {
-                futuremust = newBody.query.bool.must;
-                futuremust.push(addition);
-            } else {
-                futuremust = [newBody.query, addition];
-            }
-            newBody.query = {
-                bool: {
-                    must:
-                      futuremust
-                }
-            };
 
-            this.state.filesFilter = addition;
-        }
-
-        let url = this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
-
-        let requestOptions = this.wrapRequestOptions(url, newBody);
-*/
         let observable = Observable.create((observer) =>
             this.requestWithState(this.currentRequest, observer));
 
@@ -500,10 +478,27 @@ export class ElasticService {
         return observable.map((elasticlist: Array<any>) => elasticlist[0]); //ElasticService returns an array of one element
     }
 
-    removeFileState() {
-        this.state.filesFilter = "";
-        //load grid without that filter
-        //current request have that filter set, but requestWithState updates it
+    removeFileState(file: string) {
+        file = "*"+file+"*";
+        if(this.state.filesFilter.bool) {
+            let i = 0;
+            for(let filter of this.state.filesFilter.bool.should) {
+                if(filter.query_string.query === file){
+                    break;
+                }
+                i++;
+            }
+            if(this.state.filesFilter.bool.should.length>2) {
+                this.state.filesFilter.bool.should.splice(i, 1);
+            } else {
+                this.state.filesFilter = this.state.filesFilter.bool.should[Math.abs(i-1)]      //take the contrary of i (the not removed)
+            }
+        } else {
+            this.state.filesFilter = "";
+            //load grid without that filter
+            //current request have that filter set, but requestWithState updates it
+        }
+
         let observable = Observable.create((observer) => this.requestWithState(this.currentRequest, observer));
         return observable;
     }
