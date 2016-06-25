@@ -6,9 +6,9 @@ import {Directory} from "../filesTree/directory";
 export function getDirectories(rows) {
     let data = [];
     for (let row of rows) {
-        //if(row.path) {
+        if(row.path) {
             buildTree(row.path.split('/'), data);
-        //}
+        }
     }
     return directoryFormat(data);
 }

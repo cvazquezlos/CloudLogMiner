@@ -172,16 +172,34 @@ export class GridComponent {
         }
 
         this._elasticService.loadMore(log, loadLater).subscribe((res) => {   //load earlier: true, load later: false
-                this.gridOptions.api.hideOverlay();
-                if (!loadLater) {
-                    this.rowData = res.concat(this.rowData);
-                } else {
-                    this.rowData = this.rowData.concat(res);
-                }
+            this.gridOptions.api.hideOverlay();
 
-                this.rowData = this.rowData.slice();
+            if (!loadLater) {
+                this.rowData = res.concat(this.rowData);
+            } else {
+                this.rowData = this.rowData.concat(res);
+            }
+
+            this.rowData = this.rowData.slice();
             }, (err)=> this.subscribeError("Error when further fetching"),
-            (complete) => this.subscribeComplete());
+            (complete) => {
+                let r;
+                if(loadLater) {
+                    r = this.rowData[this.rowData.length -1];
+                } else {
+                    r = this.rowData[0];
+                }
+                if((log.message === r.message)&&(log[this._elasticService.isTimestampField]===r[this._elasticService.isTimestampField])) {
+                    //There were no more logs to fetch
+                    if(loadLater) {
+                        this.showLoadEarlier = false;
+                        this.subscribeComplete(true, true, false);
+                    } else {
+                        this.showLoadMore = false;
+                        this.subscribeComplete(true, false, true);
+                    }
+                }
+            });
     }
 
 
@@ -218,14 +236,13 @@ export class GridComponent {
             (complete) => this.subscribeComplete(false));
     }
 
-    private subscribeComplete(refreshDirectories: boolean=true) {
-        this.rowData[0].path = "/jiji/p.js";
+    private subscribeComplete(refreshDirectories: boolean = true, loadearlier=false, loadlater=false) {
         console.log("Done");
         //Need to apply the marker
         if (this.currentFilter) {
             this.mark(this.currentFilter);
         }
-        if (this.rowData.length > 49) {
+        if (!loadlater) {
             this.showLoadMore = true;
         }
 
@@ -234,16 +251,16 @@ export class GridComponent {
         }
 
         if (this.rowData) {
-            let firstTime = this.rowData[0].time || this.rowData[0]["@timestamp"];
+            let firstTime = this.rowData[0].time || this.rowData[0][this._elasticService.isTimestampField];
             this.earliestDate = this.earliestDate > firstTime ? this.earliestDate : firstTime;
 
-            if (this.earliestDate !== firstTime) {
+            if (this.earliestDate !== this.rowData[this.rowData.length - 1][this._elasticService.isTimestampField] && !loadearlier) {
                 this.showLoadEarlier = true;
             }
 
             //set date inputs to current dates to respect service state
             this.inputFrom = this.parseDate(new Date(firstTime));
-            let lastTime = this.rowData[this.rowData.length-1].time || this.rowData[this.rowData.length-1]["@timestamp"];
+            let lastTime = this.rowData[this.rowData.length-1].time || this.rowData[this.rowData.length-1][this._elasticService.isTimestampField];
             this.inputTo = this.parseDate(new Date(lastTime));
         }
 
@@ -272,83 +289,23 @@ export class GridComponent {
             }
         };
 
-        this.columnDefs = [
-            {
-                headerName: 'Time',
-                width: 200,
-                checkboxSelection: false,
-                field: "time",
+        this.columnDefs = [];
+        for(let field of this._elasticService.fields) {
+            let column = {
+                headerName: field,
+                field: field,
                 pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'L',
-                width: 60,
-                checkboxSelection: false,
-                field: "level",
-                pinned: false,
-                volatile: true,
-                cellClass: (params) => {
+                volatile: true
+            };
+            if(field.indexOf("level") > -1) {
+                column.cellClass = (params) => {
                     return [logLevel(params), marked(params)]
                 }
-            },
-            {
-                headerName: 'Type',
-                width: 60,
-                checkboxSelection: false,
-                field: "type",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'Thread',
-                width: 80,
-                checkboxSelection: false,
-                field: "thread",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'Message',
-                width: 600,
-                checkboxSelection: false,
-                field: "message",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'Logger',
-                width: 300,
-                checkboxSelection: false,
-                field: "logger",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'Host',
-                width: 200,
-                checkboxSelection: false,
-                field: "host",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
-            },
-            {
-                headerName: 'Path',
-                width: 300,
-                checkboxSelection: false,
-                field: "path",
-                pinned: false,
-                volatile: true,
-                cellClass: marked
+            } else {
+                column.cellClass = marked;
             }
-        ];
-    }
+            this.columnDefs.push(column);
+        }
 
     private calculateRowCount() {
         if (this.gridOptions.api && this.rowData) {

@@ -18,7 +18,8 @@ export class HomeComponent {
 
     public url: string;
     public index: string;
-    public rowSelected:any;
+    public exampleRow:any;
+    private rowToSelectTime:any;
 
     /**
      * Creates an instance of the HomeComponent with the injected
@@ -44,11 +45,27 @@ export class HomeComponent {
         this._elasticService.elasticINDEX = "<"+this.index+"-*>";
 
         this._elasticService.getFirstLog().subscribe((log: any) => {
-                console.log(log);
-                let keys = Object.keys(log);
-                this.rowSelected = {data: log, keys};
-            });
+            let keys = Object.keys(log);
+            this.exampleRow = {data: log, keys};
+            this.rowToSelectTime = this.exampleRow;
+        });
 
-        //this.router.navigate(['/grid']);
+        //DEFAULT NO LONGER APPLY
+        this._elasticService.fields = [];
+        this._elasticService.isTimestampField="";
+    }
+
+    private attributeSelected(at: string){
+        if(this._elasticService.fields.indexOf(at)<0) {
+            this._elasticService.fields.push(at);
+        }
+    }
+
+    private thisIsTimestamp(t: string) {
+        if(this._elasticService.fields.indexOf(t)<0) {
+            this._elasticService.fields.push(t);
+        }
+        this._elasticService.isTimestampField = t;
+        this.rowToSelectTime = undefined;
     }
 }

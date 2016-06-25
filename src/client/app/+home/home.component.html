@@ -12,12 +12,29 @@
                 <label>ElasticSearch index pattern</label>
                 <input #urlindex placeholder="ex: logstash" class="form-control" [(ngModel)]="index"/>
             </div>
-            <div class="from-group">
+            <div class="from-group" style="margin-top:1em">
                 <button type="submit" class="btn btn-default">Select</button>
             </div>
         </form>
     </div>
-    <div class="col-md-9">
-        <sd-rowdisplay [row]="rowSelected" *ngIf="rowSelected"></sd-rowdisplay>
+    <div class="col-md-4 col-md-offset-1">
+        <p><b>Fields selected</b></p>
+        <p><span *ngFor="let f of _elasticService.fields">{{f}}, </span></p>
+    </div>
+    <div class="col-md-4">
+        <button (click)="router.navigate(['/'])" class="btn btn-primary">OK</button>
+    </div>
+
+</div>
+<br/>
+<div class="row " *ngIf="exampleRow">
+    <p>Please click on your fields of interest in this log:</p>
+    <sd-rowdisplay [row]="exampleRow" (selected)="attributeSelected($event)" class="focusfinger"></sd-rowdisplay>
+</div>
+<div class="row">
+    <div *ngIf="rowToSelectTime">
+        <p>Please tell us which of your fields holds the timestamp:</p>
+        <sd-rowdisplay [row]="rowToSelectTime" (selected)="thisIsTimestamp($event)" class="focusfinger"></sd-rowdisplay>
     </div>
 </div>
+

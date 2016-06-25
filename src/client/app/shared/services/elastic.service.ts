@@ -9,9 +9,6 @@ import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Observable";
 import {Observer} from "rxjs/Rx";
 
-
-
-
 /*
 const ES_URL = 'http://jenkins:jenkins130@elasticsearch.kurento.org:9200/';
 const INDEX = "<kurento-*>";
@@ -28,16 +25,6 @@ export class ElasticService {
 
     scroll:string = "";         //Elasticsearch scroll indicator
 
-    fields:{
-        level:any,
-        logger:any,
-        thread:any
-    }={
-        level:"",
-        logger:"",
-        thread:""
-    };
-
     private sizeOfPage:number = 10;
 
     private nResults:number = 0;
@@ -48,6 +35,11 @@ export class ElasticService {
 
     private state: {filesFilter: any, dateFilter: any} = {filesFilter:"", dateFilter: ""};
 
+    //attributes names. default is as following
+    fields: Array<string> = ["@timestamp", "message", "logger_name", "thread_name", "level", "HOSTNAME", "path", "host", "type"];
+
+    //Holds which field in a log stores its time
+    private isTimestampField = "@timestamp";
 
 
     constructor(private _http: Http) {
@@ -154,24 +146,29 @@ export class ElasticService {
                 }
 
             }, err => { if(err.status===200){
-                    emitter.error(new Error("Can't access elasticSearch instance (ERR_CONNECTION_REFUSED)"))
-                } }
-            );
+                    emitter.error(new Error("Cannot access ElasticSearch instance (ERR_CONNECTION_REFUSED)"))
+                } else if(err.status===400) {
+                    emitter.error(new Error("Cannot access ElasticSearch instance, please check the configuration tab"))
+                } else {
+                    emitter.error(new Error("Internal server error or not found"))
+            }
+            });
 
         return;
     }
 
     public getRowsDefault() {            //NOTE SCROLL ID! Elasticsearch scroll wouldn't work without it
         let url =this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
+
         let body= {
         sort: [
-                { "@timestamp": "asc" }
+                { [this.isTimestampField]: "asc" }
             ],
             query: {
                 bool: {
                     must: [
                         {range: {
-                            '@timestamp': {
+                            [this.isTimestampField]: {
                                 gte: "now-200d",
                                 lte: "now" }
                         }
@@ -236,7 +233,7 @@ export class ElasticService {
             let options1 = "_score";
             sort = [options1]
         }else{
-             let options2 = { '@timestamp': 'asc'};
+             let options2 = { [this.isTimestampField]: 'asc'};
             sort = [options2];
         }
         let body = {
@@ -271,7 +268,7 @@ export class ElasticService {
 
     loadMore(lastLog: any, loadLater: boolean){
         if(this.currentRequest) {
-            let logTime = lastLog.time || lastLog._source["@timestamp"];
+            let logTime = lastLog.time || lastLog[this.isTimestampField];
             let lessThan, greaterThan;
             let changeStateGreater;
             if(loadLater) {     //later in time: closer to today
@@ -296,7 +293,7 @@ export class ElasticService {
 
             let addition = {
                 range: {
-                    "@timestamp": {
+                    [this.isTimestampField]: {
                         "gte": greaterThan,
                         "lte": lessThan
                     }
@@ -304,20 +301,20 @@ export class ElasticService {
             };
 
             if (isLoadMore && this.state.dateFilter) {    //we will need to update state.dateFilter
-                let filterTime = this.state.dateFilter.range["@timestamp"];
+                let filterTime = this.state.dateFilter.range[this.isTimestampField];
                 if (greaterOrLesser) {
                     filterTime.gte = greaterThan;   //we do not touch less than: it's the original one before load more
                 } else {
                     filterTime.lte = lessThan;         //same for the opposite
                 }
-                this.state.dateFilter.range["@timestamp"] = filterTime;
+                this.state.dateFilter.range[this.isTimestampField] = filterTime;
             } else {
                 this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
             }
         } else {
             let addition = {
                 range: {
-                    "@timestamp": {
+                    [this.isTimestampField]: {
                         "gte": greaterThan,
                         "lte": lessThan
                     }
@@ -336,7 +333,7 @@ export class ElasticService {
 
             let addition = {
                 range: {
-                    "@timestamp": {
+                    [this.isTimestampField]: {
                         "gte": greaterThan,
                         "lte": lessThan
                     }
@@ -461,14 +458,7 @@ export class ElasticService {
             "query": {
                 "match_all": {}
             },
-            "size": 1,
-            "sort": [
-                {
-                    "_timestamp": {
-                        "order": "asc"
-                    }
-                }
-            ]
+            "size": 1
         };
         let url =this.elasticURL + this.elasticINDEX +'/_search';
         let requestOptions = this.wrapRequestOptions(url,body);
@@ -528,42 +518,20 @@ export class ElasticService {
     }
 
     elasticLogProcessing(logEntry: any) {
-        let type = logEntry._type;
-        let time = logEntry._source['@timestamp'];
-        let message = logEntry._source.message;
-        let level = logEntry._source.level || logEntry._source.loglevel;
-        if(logEntry._source.level){
-            this.fields.level="level";
-        }else{
-            this.fields.level="loglevel";
+        let logValue: any = {};
+        for(let at of this.fields) {
+            logValue[at] = logEntry._source[at];
         }
-        let thread = logEntry._source.thread_name || logEntry._source.threadid;
-        if(logEntry._source.thread_name){
-            this.fields.thread="thread_name";
-        }else{
-            this.fields.thread="threadid";
-        }
-        let logger = logEntry._source.logger_name || logEntry._source.loggername;
-        if(logEntry._source.logger_name){
-            this.fields.logger="logger_name";
-        }else{
-            this.fields.logger="loggername";
-        }
-        let host = logEntry._source.host;
-
-        let path = logEntry._source.path;
-
-        let logValue = {type, time, message, level, thread, logger, host, path};
 
         return logValue;
     }
 
     /*
      * Needed for initial configuration in which there is need to select attribures of interest in an example log
+     * We do not use this.fields as they are not selected yet
      */
     selectingFieldsProcessing(logEntry) {
         let logValue = {};
-        console.log(logEntry._type);
         for(let k of Object.keys(logEntry._source)) {
             logValue[k] = logEntry._source[k];
         }

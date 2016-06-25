@@ -1,4 +1,5 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, Output} from '@angular/core';
+import {EventEmitter} from "@angular/compiler/src/facade/async";
 
 @Component({
   moduleId: module.id,
@@ -7,4 +8,7 @@ import {Component, Input} from '@angular/core';
 })
 export class RowDisplay {
   @Input() row: any;
+  @Output() selected: EventEmitter<string> = new EventEmitter<string>();
+  private isClassVisible=false;
+  
 }
