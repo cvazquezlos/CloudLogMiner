@@ -16,7 +16,7 @@
                         <span style="display:inline-block">
                             <label for="searchInput" style="display:block">Query</label>
                             <div class="input-group">
-                                <input #searchinput type="text" id="searchInput" class="form-control"
+                                <input #searchinput type="text" class="searchInput" class="form-control"
                                                             placeholder="Type text to query..."/>
                                 <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
 
@@ -136,7 +136,7 @@
                     </div>
                 </div>
                 <div id="tree" style="overflow:scroll" [ngClass]="{'col-md-2': !treeHidden,'col-md-0': treeHidden}">
-                    <h4>Source Files</h4>
+                    <h4>Source Files Filter</h4>
                     <files-tree [directories]="directories" [markedBefore]="currentlyChecked" (checked)="dirChecked($event)"
                                 (unchecked)="dirUnchecked($event)"></files-tree>
                 </div>

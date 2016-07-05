@@ -39,7 +39,7 @@ export class ElasticService {
     fields: Array<string> = ["@timestamp", "message", "logger_name", "thread_name", "level", "HOSTNAME", "path", "host", "type"];
 
     //Holds which field in a log stores its time
-    private isTimestampField = "@timestamp";
+    public isTimestampField = "@timestamp";
 
 
     constructor(private _http: Http) {
@@ -309,7 +309,9 @@ export class ElasticService {
                 }
                 this.state.dateFilter.range[this.isTimestampField] = filterTime;
             } else {
-                this.state.dateFilter = addition;   //We do not worry about the orignal state as we overwrite it
+                //console.log("he entrado por aqui"+addition.range[this.isTimestampField].gte)
+                console.log("pipi"+this.state.dateFilter.range[this.isTimestampField].gte);
+                this.state.dateFilter = addition;   //We do not worry about the original state as we overwrite it
             }
         } else {
             let addition = {
@@ -322,6 +324,8 @@ export class ElasticService {
             };
             this.state.dateFilter = addition;
         }
+        console.log(this.state.dateFilter.range["@timestamp"].gte);
+        console.log("pipi"+this.state.dateFilter.range[this.isTimestampField].gte);
     }
 
     loadByDate(lessThan, greaterThan, isLoadMore, greaterOrLesser) {

@@ -290,14 +290,14 @@ export class GridComponent {
         };
 
         this.columnDefs = [];
-        for(let field of this._elasticService.fields) {
+        for (let field of this._elasticService.fields) {
             let column = {
                 headerName: field,
                 field: field,
                 pinned: false,
                 volatile: true
             };
-            if(field.indexOf("level") > -1) {
+            if (field.indexOf("level") > -1) {
                 column.cellClass = (params) => {
                     return [logLevel(params), marked(params)]
                 }
@@ -306,6 +306,7 @@ export class GridComponent {
             }
             this.columnDefs.push(column);
         }
+    }
 
     private calculateRowCount() {
         if (this.gridOptions.api && this.rowData) {
