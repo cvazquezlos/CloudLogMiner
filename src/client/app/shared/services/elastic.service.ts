@@ -310,7 +310,6 @@ export class ElasticService {
                 this.state.dateFilter.range[this.isTimestampField] = filterTime;
             } else {
                 //console.log("he entrado por aqui"+addition.range[this.isTimestampField].gte)
-                console.log("pipi"+this.state.dateFilter.range[this.isTimestampField].gte);
                 this.state.dateFilter = addition;   //We do not worry about the original state as we overwrite it
             }
         } else {
@@ -324,8 +323,6 @@ export class ElasticService {
             };
             this.state.dateFilter = addition;
         }
-        console.log(this.state.dateFilter.range["@timestamp"].gte);
-        console.log("pipi"+this.state.dateFilter.range[this.isTimestampField].gte);
     }
 
     loadByDate(lessThan, greaterThan, isLoadMore, greaterOrLesser) {
