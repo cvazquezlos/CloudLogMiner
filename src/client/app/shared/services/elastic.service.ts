@@ -93,7 +93,8 @@ export class ElasticService {
                           futuremust
                         }
                     };
-                } else if (this.state.filesFilter && !fileFilterHappenedBefore) {
+                }
+                if (this.state.filesFilter && !fileFilterHappenedBefore) {
                     let futuremust;
                     if (actualbody.query.bool && actualbody.query.bool.must) {
                       futuremust = actualbody.query.bool.must;
@@ -161,54 +162,15 @@ export class ElasticService {
         let url =this.elasticURL + this.elasticINDEX + '/_search?scroll=1m&filter_path=_scroll_id,hits.hits._source,hits.hits._type';
 
         let body= {
-        sort: [
-                { [this.isTimestampField]: "asc" }
-            ],
+            sort: [
+                    { [this.isTimestampField]: "asc" }
+                ],
             query: {
-                bool: {
-                    must: [
-                        {range: {
+               range: {
                             [this.isTimestampField]: {
                                 gte: "now-200d",
                                 lte: "now" }
-                        }
-                        },
-                        {
-                            filtered: {
-                                filter: {
-                                    bool: {
-                                        must: [
-                                            {
-                                                "bool": {
-                                                    "should": [
-                                                        {"exists": {"field": "thread_name"}},
-                                                        {"exists": {"field": "threadid"}}
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                "bool": {
-                                                    "should": [
-                                                        {"exists": {"field": "logger_name"}},
-                                                        {"exists": {"field": "loggername"}}
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                "bool": {
-                                                    "should": [
-                                                        {"exists": {"field": "loglevel"}},
-                                                        {"exists": {"field": "level"}}
-                                                    ]
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                }
+               }
             },
             size: this.sizeOfPage
             //The following are the fields that are requested from each log. They should be consistent with the definition of logValue
@@ -236,12 +198,18 @@ export class ElasticService {
              let options2 = { [this.isTimestampField]: 'asc'};
             sort = [options2];
         }
+        let fields=[];
+        for(let f of this.fields) {
+            if(!(f.indexOf("@")>0||f.indexOf("time")>0)) {
+                fields.push(f);
+            }
+        }
         let body = {
             "query":{
                 "multi_match": {
                     "query":value,
                     "type":"best_fields",
-                    "fields": ["type", "host", "message", this.fields.level, this.fields.logger, this.fields.thread, "path"],         //Not filter by time: parsing user input would be required
+                    "fields": fields,         //Not filter by time: parsing user input would be required
                     "tie_breaker":0.3,
                     "minimum_should_match":"30%"
                 }

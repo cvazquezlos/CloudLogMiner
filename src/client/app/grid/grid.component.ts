@@ -68,7 +68,7 @@ export class GridComponent {
         this.createRowData();
     }
 
-    public createRowData() {
+    public createRowData(clear = false) {
         //this.gridOptions.api.showLoadingOverlay();
         this.rowData = [];
         this._elasticService.getRowsDefault()
@@ -76,13 +76,18 @@ export class GridComponent {
                 (res)=> {
                     //this.gridOptions.api.hideOverlay(); TODO it breaks the test
                     this.rowData = this.rowData.concat(res);
+                    if(clear) {
+                        for(let f of this.rowData) {
+                            f.marked = false;
+                        }
+                    }
                     this.rowData = this.rowData.slice();
                 },
                 (err)=> {
                     this.subscribeError("Error when default fetching. " + err)
                 },
                 (complete) => {
-                    this.subscribeComplete();
+                    this.subscribeComplete(true, false, false, true);
                     this.errorMessage = {text:"", type:""};  //we restart messages
                 });
     }
@@ -236,12 +241,16 @@ export class GridComponent {
             (complete) => this.subscribeComplete(false));
     }
 
-    private subscribeComplete(refreshDirectories: boolean = true, loadearlier=false, loadlater=false) {
+    private subscribeComplete(refreshDirectories: boolean = true, loadearlier=false, loadlater=false, isClearFilters = false) {
         console.log("Done");
         //Need to apply the marker
-        if (this.currentFilter) {
+        if (this.currentFilter && !isClearFilters) {
             this.mark(this.currentFilter);
         }
+        if(isClearFilters) {
+            this.currentFilter = "";
+        }
+
         if (!loadlater) {
             this.showLoadMore = true;
         }
@@ -250,7 +259,7 @@ export class GridComponent {
             this.directories = this.getDirectories();
         }
 
-        if (this.rowData) {
+        if (this.rowData.length>0) {
             let firstTime = this.rowData[0].time || this.rowData[0][this._elasticService.isTimestampField];
             this.earliestDate = this.earliestDate > firstTime ? this.earliestDate : firstTime;
 
