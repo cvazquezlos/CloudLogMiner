@@ -396,9 +396,9 @@ export class ElasticService {
         return loadMoreObservable;
     }
 
-    generalSearch(to, from, searchinput) {          //search with date and query
+    generalSearch(to, from, searchinput, byRelevance) {          //search with date and query
         this.changeStateDateFilter(to, from, false, false);
-        return this.search(searchinput);
+        return this.search(searchinput, byRelevance);
 
     }
 

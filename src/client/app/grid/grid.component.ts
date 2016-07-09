@@ -143,7 +143,7 @@ export class GridComponent {
             this.loadByDate(from, to)
         } else {
             if (from < to) {
-                this._elasticService.generalSearch(to, from, searchinput).subscribe((res) => {
+                this._elasticService.generalSearch(to, from, searchinput, this.searchByRelevance).subscribe((res) => {
                         this.gridOptions.api.hideOverlay();
                         this.rowData = this.rowData.concat(res);
                         this.rowData = this.rowData.slice();
@@ -259,7 +259,9 @@ export class GridComponent {
             }
 
             //set date inputs to current dates to respect service state
-            this.inputFrom = this.parseDate(new Date(firstTime));
+            let dat = new Date(firstTime);
+            dat.setDate(dat.getDate() - 1);     //substract one day
+            this.inputFrom = this.parseDate(dat);
             let lastTime = this.rowData[this.rowData.length-1].time || this.rowData[this.rowData.length-1][this._elasticService.isTimestampField];
             this.inputTo = this.parseDate(new Date(lastTime));
         }
